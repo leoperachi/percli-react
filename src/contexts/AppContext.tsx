@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { AppContextType, User, LoadingState, MessageState } from '../types';
 import apiService from '../services/apiService';
+import googleAuthService from '../services/googleAuthService';
 
 interface AppState {
   user: User | null;
@@ -59,6 +60,9 @@ export function AppProvider({ children }: AppProviderProps) {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        // Configure Google Sign-In
+        googleAuthService.configure();
+
         const isAuth = await apiService.isAuthenticated();
         if (isAuth) {
           const userData = await apiService.getStoredUserData();
@@ -310,6 +314,97 @@ export function AppProvider({ children }: AppProviderProps) {
     dispatch({ type: 'HIDE_MESSAGE' });
   };
 
+  const loginWithGoogle = async (): Promise<boolean> => {
+    try {
+      dispatch({
+        type: 'SET_LOADING',
+        payload: { isLoading: true, message: 'Fazendo login com Google...' }
+      });
+
+      // Faz o sign in com Google e obtém o authorization code
+      const googleResult = await googleAuthService.signIn();
+
+      console.log('AppContext - Google result received:', JSON.stringify(googleResult, null, 2));
+
+      if (googleResult.type === 'cancelled') {
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'info',
+            message: 'Login cancelado pelo usuário',
+            visible: true
+          }
+        });
+        return false;
+      }
+
+      if (!googleResult.serverAuthCode) {
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'error',
+            message: `❌ AUTHORIZATION CODE NÃO RECEBIDO\n\nIsso é necessário para o Authorization Code Flow.\n\nPossíveis causas:\n• Web Client ID incorreto\n• Configuração OAuth mal configurada\n• offlineAccess não funcionando\n\nDetalhes do resultado:\n${JSON.stringify(googleResult, null, 2)}`,
+            visible: true
+          }
+        });
+        return false;
+      }
+
+      // Envia o authorization code para o backend
+      const response = await apiService.googleAuth(googleResult.serverAuthCode);
+
+      if (response.success && response.data) {
+        dispatch({ type: 'SET_USER', payload: response.data.user });
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'success',
+            message: 'Login com Google realizado com sucesso!',
+            visible: true
+          }
+        });
+        return true;
+      } else {
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'error',
+            message: response.error || 'Erro ao fazer login com Google',
+            visible: true
+          }
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('AppContext - Google login error:', error);
+
+      let errorMessage = 'Erro de conexão';
+      if (error instanceof Error) {
+        errorMessage = `Erro: ${error.message}`;
+        if (error.stack) {
+          errorMessage += `\n\nStack: ${error.stack.substring(0, 300)}...`;
+        }
+      } else {
+        errorMessage = `Erro desconhecido: ${JSON.stringify(error, null, 2)}`;
+      }
+
+      dispatch({
+        type: 'SET_MESSAGE',
+        payload: {
+          type: 'error',
+          message: errorMessage,
+          visible: true
+        }
+      });
+      return false;
+    } finally {
+      dispatch({
+        type: 'SET_LOADING',
+        payload: { isLoading: false }
+      });
+    }
+  };
+
   // Test exact Postman request
   const testPostmanRequest = async () => {
     try {
@@ -438,6 +533,7 @@ export function AppProvider({ children }: AppProviderProps) {
     setLoading,
     showMessage,
     hideMessage,
+    loginWithGoogle,
   };
 
   return (

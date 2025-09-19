@@ -2,7 +2,7 @@
 export const API_CONFIG = {
   // Base URL for the backend API
   BASE_URL: __DEV__
-    ? 'http://192.168.0.101:8085'
+    ? 'http://192.168.0.101:3000'
     : 'https://your-production-api.com',
 
   // API Endpoints

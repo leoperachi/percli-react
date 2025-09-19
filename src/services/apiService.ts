@@ -170,12 +170,50 @@ class ApiService {
       );
 
       console.log('🔥 [API SERVICE] STEP 6: Request successful!');
-      console.log('🔥 [API SERVICE] Response received:', response.data);
+      console.log('🔥 [API SERVICE] Raw response data:', response.data);
+      console.log('🔥 [API SERVICE] Response status:', response.status);
+
+      // Handle server response format - convert to ApiResponse format
+      const serverData = response.data;
+
+      // Check if server returned success (status 200-299)
+      const isSuccess = response.status >= 200 && response.status < 300;
+
+      let apiResponse: ApiResponse<T>;
+
+      if (isSuccess) {
+        // Server returned success - format as ApiResponse
+        if (serverData.status_code && serverData.data) {
+          // Server format: { status_code: 201, message: "...", data: {...} }
+          apiResponse = {
+            success: true,
+            data: serverData.data,
+            message: serverData.message
+          };
+        } else if (serverData.success !== undefined) {
+          // Already in ApiResponse format
+          apiResponse = serverData;
+        } else {
+          // Direct data response
+          apiResponse = {
+            success: true,
+            data: serverData
+          };
+        }
+      } else {
+        // Server returned error
+        apiResponse = {
+          success: false,
+          error: serverData.message || serverData.error || 'Server error'
+        };
+      }
+
+      console.log('🔥 [API SERVICE] Formatted API response:', JSON.stringify(apiResponse, null, 2));
       console.log(
         '================== API SERVICE REQUEST SUCCESS ==================',
       );
 
-      return response.data;
+      return apiResponse;
     } catch (error) {
       console.log(
         '================== API SERVICE REQUEST ERROR ==================',
@@ -185,25 +223,37 @@ class ApiService {
         console.log('[API SERVICE] This is an Axios error');
         const axiosError = error as AxiosError;
 
-        // Handle 401 with token refresh
-        if (axiosError.response?.status === 401 && includeAuth) {
-          console.log(
-            '🔄 [API SERVICE] 401 detected, attempting token refresh...',
-          );
-          const refreshed = await this.refreshToken();
-          if (refreshed) {
+        // Handle 401 with token refresh only for authenticated requests
+        if (axiosError.response?.status === 401) {
+          if (includeAuth) {
             console.log(
-              '✅ [API SERVICE] Token refreshed successfully, retrying request...',
+              '🔄 [API SERVICE] 401 detected on authenticated request, attempting token refresh...',
             );
-            return this.request(endpoint, options, includeAuth, params);
+            const refreshed = await this.refreshToken();
+            if (refreshed) {
+              console.log(
+                '✅ [API SERVICE] Token refreshed successfully, retrying request...',
+              );
+              return this.request(endpoint, options, includeAuth, params);
+            } else {
+              console.log(
+                '[API SERVICE] Token refresh failed, clearing storage...',
+              );
+              await this.clearStorage();
+              return {
+                success: false,
+                error: '🔐 SESSÃO EXPIRADA: Faça login novamente.',
+              };
+            }
           } else {
             console.log(
-              '[API SERVICE] Token refresh failed, clearing storage...',
+              '🚫 [API SERVICE] 401 detected on non-authenticated request (register/login/etc)',
             );
-            await this.clearStorage();
+            // For non-authenticated requests (like register), treat 401 as a normal error
+            let errorMessage = this.getAxiosErrorMessage(axiosError, endpoint);
             return {
               success: false,
-              error: '🔐 SESSÃO EXPIRADA: Faça login novamente.',
+              error: errorMessage,
             };
           }
         }
@@ -286,7 +336,7 @@ class ApiService {
         this.timeout / 1000
       }s`;
     } else if (error.code === 'ECONNREFUSED') {
-      userMessage = `🚪 CONEXÃO RECUSADA: Servidor não está rodando em 192.168.0.101:8085`;
+      userMessage = `🚪 CONEXÃO RECUSADA: Servidor não está rodando em 192.168.0.101:3000`;
     } else if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
       userMessage = `🔍 DNS: Não foi possível resolver 192.168.0.101`;
     } else if (error.code === 'ENETUNREACH' || error.code === 'ENETDOWN') {
@@ -359,7 +409,7 @@ class ApiService {
     password: string,
   ): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await fetch('http://192.168.0.101:8085/auth/login', {
+      const response = await fetch('http://192.168.0.101:3000/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -393,6 +443,8 @@ class ApiService {
     password: string,
     name: string,
   ): Promise<ApiResponse<AuthResponse>> {
+    console.log('🔥 [REGISTER] Starting registration process...');
+
     const response = await this.request<AuthResponse>(
       API_CONFIG.ENDPOINTS.AUTH.REGISTER,
       {
@@ -402,9 +454,14 @@ class ApiService {
       false, // Don't include auth header for registration
     );
 
+    console.log('🔥 [REGISTER] Response received:', JSON.stringify(response, null, 2));
+
     // Store auth data if registration successful
     if (response.success && response.data) {
+      console.log('🔥 [REGISTER] Storing auth data...');
       await secureStorageService.setAuthData(response.data);
+    } else {
+      console.log('🔥 [REGISTER] Registration failed or no data to store');
     }
 
     return response;
@@ -464,6 +521,41 @@ class ApiService {
     return await secureStorageService.isAuthenticated();
   }
 
+  // Google Authentication - Authorization Code Flow
+  async googleAuth(authorizationCode: string): Promise<ApiResponse<AuthResponse>> {
+    try {
+      const response = await fetch('http://192.168.0.101:3000/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: authorizationCode,
+          grantType: 'authorization_code'
+        }),
+      });
+
+      const text = await response.text();
+
+      if (!response.ok) {
+        return { success: false, error: `HTTP ${response.status}: ${text}` };
+      }
+
+      const data = JSON.parse(text);
+
+      if (data.data?.user) {
+        return { success: true, data: data.data };
+      }
+
+      return { success: false, error: 'Resposta inválida do servidor' };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Erro de rede',
+      };
+    }
+  }
+
   // Test method that replicates EXACT Postman request
   async testPostmanLogin(): Promise<any> {
     console.log(
@@ -472,7 +564,7 @@ class ApiService {
 
     try {
       // Exact same request as Postman
-      const url = 'http://192.168.0.101:8085/auth/login';
+      const url = 'http://192.168.0.101:3000/auth/login';
       const payload = {
         email: 'admin@percli.com',
         password: 'admin123',
@@ -526,7 +618,7 @@ class ApiService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        url: 'http://192.168.0.101:8085/auth/login',
+        url: 'http://192.168.0.101:3000/auth/login',
         payload: { email: 'admin@percli.com', password: 'admin123' },
       };
     }

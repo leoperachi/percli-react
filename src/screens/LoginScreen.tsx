@@ -20,7 +20,7 @@ export function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setPasswordVisible] = useState(false);
-  const { login, loading } = useAppContext();
+  const { login, loading, loginWithGoogle } = useAppContext();
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -122,7 +122,11 @@ export function LoginScreen() {
           </View>
 
           {/* Social Login */}
-          <TouchableOpacity style={styles.socialButton}>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={loginWithGoogle}
+            disabled={loading.isLoading}
+          >
             <Text style={styles.socialButtonText}>📱 Continuar com Google</Text>
           </TouchableOpacity>
 

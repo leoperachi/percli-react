@@ -9,7 +9,7 @@ export interface EnvironmentConfig {
 
 // Development environment
 const developmentConfig: EnvironmentConfig = {
-  API_BASE_URL: 'http://192.168.0.101:8085',
+  API_BASE_URL: 'http://192.168.0.101:3000',
   API_TIMEOUT: 10000,
   ENABLE_LOGGING: true,
   ENVIRONMENT: 'development',

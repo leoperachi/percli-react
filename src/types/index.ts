@@ -80,4 +80,5 @@ export interface AppContextType {
   setLoading: (loading: LoadingState) => void;
   showMessage: (type: MessageState['type'], message: string) => void;
   hideMessage: () => void;
+  loginWithGoogle: () => Promise<boolean>;
 }
