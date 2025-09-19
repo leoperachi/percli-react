@@ -21,7 +21,7 @@ export function HomeScreen() {
           <Text style={styles.subtitle}>Bem-vindo ao PerCLI</Text>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+        <TouchableOpacity style={styles.logoutButton} onPress={() => logout()}>
           <Text style={styles.logoutButtonText}>Sair</Text>
         </TouchableOpacity>
       </View>

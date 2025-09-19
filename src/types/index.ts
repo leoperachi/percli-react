@@ -4,17 +4,53 @@ export interface User {
   name: string;
   role: string;
   isActive: boolean;
+  emailVerified?: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface AuthTokens {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
+  access: string;
+  refresh: string;
+  expiresIn: number;
 }
 
 export interface LoginResponse {
   user: User;
+  tokens: AuthTokens;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface UpdateProfileRequest {
+  name?: string;
+  email?: string;
+  [key: string]: any;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
   tokens: AuthTokens;
 }
 
@@ -35,9 +71,12 @@ export interface AppContextType {
   message: MessageState;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   setLoading: (loading: LoadingState) => void;
   showMessage: (type: MessageState['type'], message: string) => void;
   hideMessage: () => void;

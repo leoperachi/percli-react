@@ -126,6 +126,7 @@ export function LoginScreen() {
             <Text style={styles.socialButtonText}>📱 Continuar com Google</Text>
           </TouchableOpacity>
 
+
           {/* Sign Up Link */}
           <View style={styles.signUpContainer}>
             <Text style={styles.signUpText}>Não tem uma conta? </Text>

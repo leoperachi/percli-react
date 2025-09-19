@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { AppContextType, User, LoadingState, MessageState } from '../types';
+import apiService from '../services/apiService';
 
 interface AppState {
   user: User | null;
@@ -54,6 +55,25 @@ interface AppProviderProps {
 export function AppProvider({ children }: AppProviderProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // Check for existing authentication on app start
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const isAuth = await apiService.isAuthenticated();
+        if (isAuth) {
+          const userData = await apiService.getStoredUserData();
+          if (userData) {
+            dispatch({ type: 'SET_USER', payload: userData });
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       dispatch({
@@ -61,19 +81,10 @@ export function AppProvider({ children }: AppProviderProps) {
         payload: { isLoading: true, message: 'Fazendo login...' }
       });
 
-      // Simulate API call
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await apiService.login(email, password);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        dispatch({ type: 'SET_USER', payload: data.data.user });
+      if (response.success && response.data) {
+        dispatch({ type: 'SET_USER', payload: response.data.user });
         dispatch({
           type: 'SET_MESSAGE',
           payload: {
@@ -88,18 +99,19 @@ export function AppProvider({ children }: AppProviderProps) {
           type: 'SET_MESSAGE',
           payload: {
             type: 'error',
-            message: data.message || 'Erro ao fazer login',
+            message: response.error || 'Erro ao fazer login',
             visible: true
           }
         });
         return false;
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro de conexão';
       dispatch({
         type: 'SET_MESSAGE',
         payload: {
           type: 'error',
-          message: 'Erro de conexão com o servidor',
+          message: errorMessage,
           visible: true
         }
       });
@@ -119,17 +131,9 @@ export function AppProvider({ children }: AppProviderProps) {
         payload: { isLoading: true, message: 'Criando conta...' }
       });
 
-      const response = await fetch('http://localhost:3000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
+      const response = await apiService.register(email, password, name);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (response.success && response.data) {
         dispatch({
           type: 'SET_MESSAGE',
           payload: {
@@ -144,7 +148,7 @@ export function AppProvider({ children }: AppProviderProps) {
           type: 'SET_MESSAGE',
           payload: {
             type: 'error',
-            message: data.message || 'Erro ao criar conta',
+            message: response.error || 'Erro ao criar conta',
             visible: true
           }
         });
@@ -175,24 +179,9 @@ export function AppProvider({ children }: AppProviderProps) {
         payload: { isLoading: true, message: 'Alterando senha...' }
       });
 
-      const response = await fetch('http://localhost:3000/api/auth/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Note: In a real app, you'd include the auth token here
-          // 'Authorization': `Bearer ${userToken}`
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          // In a real app, you'd include user identification
-          userId: state.user?.id
-        }),
-      });
+      const response = await apiService.changePassword(currentPassword, newPassword);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (response.success) {
         dispatch({
           type: 'SET_MESSAGE',
           payload: {
@@ -207,7 +196,7 @@ export function AppProvider({ children }: AppProviderProps) {
           type: 'SET_MESSAGE',
           payload: {
             type: 'error',
-            message: data.message || 'Erro ao alterar senha',
+            message: response.error || 'Erro ao alterar senha',
             visible: true
           }
         });
@@ -238,17 +227,9 @@ export function AppProvider({ children }: AppProviderProps) {
         payload: { isLoading: true, message: 'Enviando email de recuperação...' }
       });
 
-      const response = await fetch('http://localhost:3000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      const response = await apiService.forgotPassword(email);
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (response.success) {
         dispatch({
           type: 'SET_MESSAGE',
           payload: {
@@ -263,7 +244,7 @@ export function AppProvider({ children }: AppProviderProps) {
           type: 'SET_MESSAGE',
           payload: {
             type: 'error',
-            message: data.message || 'Erro ao enviar email de recuperação',
+            message: response.error || 'Erro ao enviar email de recuperação',
             visible: true
           }
         });
@@ -287,16 +268,31 @@ export function AppProvider({ children }: AppProviderProps) {
     }
   };
 
-  const logout = () => {
-    dispatch({ type: 'LOGOUT' });
-    dispatch({
-      type: 'SET_MESSAGE',
-      payload: {
-        type: 'info',
-        message: 'Logout realizado com sucesso!',
-        visible: true
-      }
-    });
+  const logout = async () => {
+    try {
+      // Call logout API and clear secure storage
+      await apiService.logout();
+      dispatch({ type: 'LOGOUT' });
+      dispatch({
+        type: 'SET_MESSAGE',
+        payload: {
+          type: 'info',
+          message: 'Logout realizado com sucesso!',
+          visible: true
+        }
+      });
+    } catch (error) {
+      // Even if logout API fails, clear local data
+      dispatch({ type: 'LOGOUT' });
+      dispatch({
+        type: 'SET_MESSAGE',
+        payload: {
+          type: 'info',
+          message: 'Logout realizado com sucesso!',
+          visible: true
+        }
+      });
+    }
   };
 
   const setLoading = (loading: LoadingState) => {
@@ -312,6 +308,122 @@ export function AppProvider({ children }: AppProviderProps) {
 
   const hideMessage = () => {
     dispatch({ type: 'HIDE_MESSAGE' });
+  };
+
+  // Test exact Postman request
+  const testPostmanRequest = async () => {
+    try {
+      dispatch({
+        type: 'SET_LOADING',
+        payload: { isLoading: true, message: 'Testando requisição igual ao Postman...' }
+      });
+
+      const result = await apiService.testPostmanLogin();
+
+      if (result.success) {
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'success',
+            message: `🎯 TESTE POSTMAN SUCESSO!\n\nStatus: ${result.status}\n\nResposta:\n${JSON.stringify(result.data, null, 2)}`,
+            visible: true
+          }
+        });
+      } else {
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'error',
+            message: `🎯 TESTE POSTMAN FALHOU!\n\nErro: ${result.error}\n\nURL: ${result.url}\n\nPayload: ${JSON.stringify(result.payload, null, 2)}`,
+            visible: true
+          }
+        });
+      }
+    } catch (error) {
+      let errorDetails = 'ERRO NO TESTE POSTMAN:\n\n';
+
+      if (error instanceof Error) {
+        errorDetails += `Tipo: ${error.constructor.name}\n`;
+        errorDetails += `Mensagem: ${error.message}\n`;
+        if (error.stack) {
+          errorDetails += `Stack: ${error.stack.substring(0, 500)}...\n`;
+        }
+      } else {
+        errorDetails += `Erro: ${JSON.stringify(error, null, 2)}`;
+      }
+
+      dispatch({
+        type: 'SET_MESSAGE',
+        payload: {
+          type: 'error',
+          message: errorDetails,
+          visible: true
+        }
+      });
+    } finally {
+      dispatch({
+        type: 'SET_LOADING',
+        payload: { isLoading: false }
+      });
+    }
+  };
+
+  // Test connection function for debugging
+  const testConnection = async () => {
+    try {
+      dispatch({
+        type: 'SET_LOADING',
+        payload: { isLoading: true, message: 'Executando testes de conectividade...' }
+      });
+
+      const result = await apiService.testConnection();
+
+      if (result.success) {
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'success',
+            message: `🔧 TESTE DE CONECTIVIDADE:\n\n${result.summary}\n\n=== DETALHES COMPLETOS ===\n${JSON.stringify(result.fullResults, null, 2)}`,
+            visible: true
+          }
+        });
+      } else {
+        dispatch({
+          type: 'SET_MESSAGE',
+          payload: {
+            type: 'error',
+            message: `🔧 TESTE DE CONECTIVIDADE (FALHOU):\n\n${result.summary}\n\n=== DETALHES COMPLETOS ===\n${JSON.stringify(result.fullResults, null, 2)}`,
+            visible: true
+          }
+        });
+      }
+    } catch (error) {
+      let errorDetails = 'ERRO CRÍTICO NO TESTE:\n\n';
+
+      if (error instanceof Error) {
+        errorDetails += `Tipo: ${error.constructor.name}\n`;
+        errorDetails += `Mensagem: ${error.message}\n`;
+        if (error.stack) {
+          errorDetails += `Stack: ${error.stack.substring(0, 500)}...\n`;
+        }
+      } else {
+        errorDetails += `Erro: ${JSON.stringify(error, null, 2)}`;
+      }
+
+      dispatch({
+        type: 'SET_MESSAGE',
+        payload: {
+          type: 'error',
+          message: errorDetails,
+          visible: true
+        }
+      });
+    } finally {
+      dispatch({
+        type: 'SET_LOADING',
+        payload: { isLoading: false }
+      });
+    }
   };
 
   const value: AppContextType = {
