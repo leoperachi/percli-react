@@ -127,6 +127,7 @@ export function LoginScreen() {
           </TouchableOpacity>
 
 
+
           {/* Sign Up Link */}
           <View style={styles.signUpContainer}>
             <Text style={styles.signUpText}>Não tem uma conta? </Text>
