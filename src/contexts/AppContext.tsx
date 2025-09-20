@@ -56,26 +56,23 @@ interface AppProviderProps {
 export function AppProvider({ children }: AppProviderProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Check for existing authentication on app start
+  // Initialize app services (but don't auto-login)
   useEffect(() => {
-    const checkAuthStatus = async () => {
+    const initializeApp = async () => {
       try {
         // Configure Google Sign-In
         googleAuthService.configure();
 
-        const isAuth = await apiService.isAuthenticated();
-        if (isAuth) {
-          const userData = await apiService.getStoredUserData();
-          if (userData) {
-            dispatch({ type: 'SET_USER', payload: userData });
-          }
-        }
+        // Clear any existing auth data to ensure clean start
+        await apiService.logout();
+
+        console.log('🔥 [APP CONTEXT] App initialized with clean state - user must login manually');
       } catch (error) {
-        console.error('Error checking auth status:', error);
+        console.error('Error initializing app:', error);
       }
     };
 
-    checkAuthStatus();
+    initializeApp();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -138,15 +135,43 @@ export function AppProvider({ children }: AppProviderProps) {
       const response = await apiService.register(email, password, name);
 
       if (response.success && response.data) {
+        // Registration successful - now auto-login the user
         dispatch({
-          type: 'SET_MESSAGE',
-          payload: {
-            type: 'success',
-            message: 'Conta criada com sucesso! Faça login para continuar.',
-            visible: true
-          }
+          type: 'SET_LOADING',
+          payload: { isLoading: true, message: 'Fazendo login automático...' }
         });
-        return true;
+
+        console.log('🔥 [REGISTER] Registration successful, attempting auto-login...');
+
+        // Attempt automatic login with the same credentials
+        const loginResponse = await apiService.login(email, password);
+
+        if (loginResponse.success && loginResponse.data) {
+          // Auto-login successful
+          dispatch({ type: 'SET_USER', payload: loginResponse.data.user });
+          dispatch({
+            type: 'SET_MESSAGE',
+            payload: {
+              type: 'success',
+              message: 'Conta criada e login realizado com sucesso!',
+              visible: true
+            }
+          });
+          console.log('🔥 [REGISTER] Auto-login successful');
+          return true;
+        } else {
+          // Registration succeeded but auto-login failed
+          dispatch({
+            type: 'SET_MESSAGE',
+            payload: {
+              type: 'success',
+              message: 'Conta criada com sucesso! Faça login para continuar.',
+              visible: true
+            }
+          });
+          console.log('🔥 [REGISTER] Registration successful but auto-login failed');
+          return true; // Still return true because registration succeeded
+        }
       } else {
         dispatch({
           type: 'SET_MESSAGE',

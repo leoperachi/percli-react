@@ -39,8 +39,9 @@ export function RegisterScreen() {
     );
 
     if (success) {
-      // Navigate to login or home screen
-      navigation.navigate('Login');
+      // Registration successful and user is now logged in
+      // Navigation will be handled automatically by the auth state change
+      // No need to navigate manually as the app will detect the user is logged in
     }
   };
 

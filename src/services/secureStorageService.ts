@@ -12,8 +12,8 @@ class SecureStorageService {
   private readonly defaultOptions: Keychain.Options = {
     service: 'percli_app',
     accessGroup: undefined,
-    accessControl: Keychain.ACCESS_CONTROL.BIOMETRY_ANY_OR_DEVICE_PASSCODE,
-    authenticationType: Keychain.AUTHENTICATION_TYPE.DEVICE_PASSCODE_OR_BIOMETRICS,
+    // Use less restrictive access control to avoid crashes
+    accessControl: Keychain.ACCESS_CONTROL.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
     storage: Keychain.STORAGE_TYPE.AES,
   };
 
@@ -27,21 +27,31 @@ class SecureStorageService {
   // Store user credentials and tokens
   async setAuthData(authData: AuthResponse, options?: SecureStorageOptions): Promise<boolean> {
     try {
+      console.log('🔐 [KEYCHAIN] Attempting to store auth data...');
       const { user, tokens } = authData;
 
       // Store user data
-      await this.setUserData(user, options);
+      const userResult = await this.setUserData(user, options);
+      console.log('🔐 [KEYCHAIN] User data stored:', userResult);
 
       // Store tokens
-      await this.setAccessToken(tokens.access, options);
-      await this.setRefreshToken(tokens.refresh, options);
+      const accessResult = await this.setAccessToken(tokens.access, options);
+      console.log('🔐 [KEYCHAIN] Access token stored:', accessResult);
+
+      const refreshResult = await this.setRefreshToken(tokens.refresh, options);
+      console.log('🔐 [KEYCHAIN] Refresh token stored:', refreshResult);
 
       // Mark as authenticated
-      await this.setAuthState(true, options);
+      const authResult = await this.setAuthState(true, options);
+      console.log('🔐 [KEYCHAIN] Auth state stored:', authResult);
 
-      return true;
+      const success = userResult && accessResult && refreshResult && authResult;
+      console.log('🔐 [KEYCHAIN] Overall success:', success);
+
+      return success;
     } catch (error) {
-      console.error('Error storing auth data:', error);
+      console.error('🔐 [KEYCHAIN] CRITICAL ERROR storing auth data:', error);
+      // Don't throw, just return false to prevent app crash
       return false;
     }
   }
@@ -50,16 +60,35 @@ class SecureStorageService {
   async setUserData(user: User, options?: SecureStorageOptions): Promise<boolean> {
     try {
       const userData = JSON.stringify(user);
+      const storeOptions = { ...this.defaultOptions, ...options };
+
+      console.log('🔐 [KEYCHAIN] Storing user data with options:', storeOptions);
+
       await Keychain.setInternetCredentials(
         this.KEYS.USER_DATA,
         user.email,
         userData,
-        { ...this.defaultOptions, ...options }
+        storeOptions
       );
       return true;
     } catch (error) {
-      console.error('Error storing user data:', error);
-      return false;
+      console.error('🔐 [KEYCHAIN] Error storing user data:', error);
+
+      // Try with even simpler options if the default fails
+      try {
+        console.log('🔐 [KEYCHAIN] Trying with basic options...');
+        await Keychain.setInternetCredentials(
+          this.KEYS.USER_DATA,
+          user.email,
+          JSON.stringify(user),
+          { service: 'percli_app' }
+        );
+        console.log('🔐 [KEYCHAIN] Success with basic options');
+        return true;
+      } catch (fallbackError) {
+        console.error('🔐 [KEYCHAIN] Fallback also failed:', fallbackError);
+        return false;
+      }
     }
   }
 
@@ -88,8 +117,21 @@ class SecureStorageService {
       );
       return true;
     } catch (error) {
-      console.error('Error storing access token:', error);
-      return false;
+      console.error('🔐 [KEYCHAIN] Error storing access token:', error);
+
+      // Try with basic options
+      try {
+        await Keychain.setInternetCredentials(
+          this.KEYS.ACCESS_TOKEN,
+          'access_token',
+          token,
+          { service: 'percli_app' }
+        );
+        return true;
+      } catch (fallbackError) {
+        console.error('🔐 [KEYCHAIN] Access token fallback failed:', fallbackError);
+        return false;
+      }
     }
   }
 
@@ -115,8 +157,21 @@ class SecureStorageService {
       );
       return true;
     } catch (error) {
-      console.error('Error storing refresh token:', error);
-      return false;
+      console.error('🔐 [KEYCHAIN] Error storing refresh token:', error);
+
+      // Try with basic options
+      try {
+        await Keychain.setInternetCredentials(
+          this.KEYS.REFRESH_TOKEN,
+          'refresh_token',
+          token,
+          { service: 'percli_app' }
+        );
+        return true;
+      } catch (fallbackError) {
+        console.error('🔐 [KEYCHAIN] Refresh token fallback failed:', fallbackError);
+        return false;
+      }
     }
   }
 
@@ -142,8 +197,21 @@ class SecureStorageService {
       );
       return true;
     } catch (error) {
-      console.error('Error storing auth state:', error);
-      return false;
+      console.error('🔐 [KEYCHAIN] Error storing auth state:', error);
+
+      // Try with basic options
+      try {
+        await Keychain.setInternetCredentials(
+          this.KEYS.AUTH_STATE,
+          'auth_state',
+          String(isAuthenticated),
+          { service: 'percli_app' }
+        );
+        return true;
+      } catch (fallbackError) {
+        console.error('🔐 [KEYCHAIN] Auth state fallback failed:', fallbackError);
+        return false;
+      }
     }
   }
 

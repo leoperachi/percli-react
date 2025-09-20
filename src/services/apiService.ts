@@ -1,7 +1,7 @@
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import { API_CONFIG, buildUrl, ApiResponse, AuthResponse } from '../config/api';
 import { ENV, log, logError } from '../config/environment';
-import secureStorageService from './secureStorageService';
+import hybridStorageService from './hybridStorageService';
 
 class ApiService {
   private baseURL: string;
@@ -36,24 +36,23 @@ class ApiService {
 
   // Get stored access token
   private async getAccessToken(): Promise<string | null> {
-    return await secureStorageService.getAccessToken();
+    return await hybridStorageService.getAccessToken();
   }
 
   // Get stored refresh token
   private async getRefreshToken(): Promise<string | null> {
-    return await secureStorageService.getRefreshToken();
+    return await hybridStorageService.getRefreshToken();
   }
 
-  // Store tokens
+  // Store tokens (not used in hybrid - tokens stored as part of auth data)
   private async storeTokens(
     accessToken: string,
     refreshToken: string,
   ): Promise<void> {
     try {
-      await Promise.all([
-        secureStorageService.setAccessToken(accessToken),
-        secureStorageService.setRefreshToken(refreshToken),
-      ]);
+      // Note: In hybrid storage, tokens are stored as part of setAuthData
+      // This method kept for compatibility but not actively used
+      console.log('⚠️ [API SERVICE] storeTokens called - tokens should be stored via setAuthData');
     } catch (error) {
       logError('Error storing tokens:', error);
     }
@@ -62,7 +61,7 @@ class ApiService {
   // Clear all stored data
   private async clearStorage(): Promise<void> {
     try {
-      await secureStorageService.clearAuthData();
+      await hybridStorageService.clearAuthData();
     } catch (error) {
       logError('Error clearing storage:', error);
     }
@@ -387,10 +386,8 @@ class ApiService {
 
       const data: ApiResponse<AuthResponse> = response.data;
       if (data.success && data.data) {
-        await this.storeTokens(
-          data.data.tokens.access,
-          data.data.tokens.refresh,
-        );
+        // Store the full auth data using hybrid storage
+        await hybridStorageService.setAuthData(data.data);
         log('✅ [REFRESH] Token refreshed successfully');
         return true;
       }
@@ -409,7 +406,7 @@ class ApiService {
     password: string,
   ): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await fetch('http://192.168.0.101:3000/auth/login', {
+      const response = await fetch('http://192.168.0.101:8085/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -426,6 +423,15 @@ class ApiService {
       const data = JSON.parse(text);
 
       if (data.data?.user) {
+        // Store auth data if login response contains tokens
+        if (data.data.tokens) {
+          console.log('🔥 [LOGIN] Login successful with tokens, storing auth data...');
+          const stored = await hybridStorageService.setAuthData(data.data);
+          console.log('🔥 [LOGIN] Auth data storage result:', stored);
+        } else {
+          console.log('🔥 [LOGIN] Login successful but no tokens in response');
+        }
+
         return { success: true, data: data.data };
       }
 
@@ -456,12 +462,14 @@ class ApiService {
 
     console.log('🔥 [REGISTER] Response received:', JSON.stringify(response, null, 2));
 
-    // Store auth data if registration successful
-    if (response.success && response.data) {
-      console.log('🔥 [REGISTER] Storing auth data...');
-      await secureStorageService.setAuthData(response.data);
+    // Store auth data if registration successful and data contains tokens
+    if (response.success && response.data && response.data.tokens) {
+      console.log('🔥 [REGISTER] Registration successful with tokens, storing auth data...');
+      const stored = await hybridStorageService.setAuthData(response.data);
+      console.log('🔥 [REGISTER] Auth data storage result:', stored);
     } else {
-      console.log('🔥 [REGISTER] Registration failed or no data to store');
+      console.log('🔥 [REGISTER] Registration response:', JSON.stringify(response, null, 2));
+      console.log('🔥 [REGISTER] Not storing auth data - no tokens in response');
     }
 
     return response;
@@ -513,18 +521,18 @@ class ApiService {
 
   // Helper method to get stored user data
   async getStoredUserData(): Promise<any | null> {
-    return await secureStorageService.getUserData();
+    return await hybridStorageService.getUserData();
   }
 
   // Check if user is authenticated
   async isAuthenticated(): Promise<boolean> {
-    return await secureStorageService.isAuthenticated();
+    return await hybridStorageService.isAuthenticated();
   }
 
   // Google Authentication - Authorization Code Flow
   async googleAuth(authorizationCode: string): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await fetch('http://192.168.0.101:3000/auth/google', {
+      const response = await fetch('http://192.168.0.101:8085/auth/google', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -564,7 +572,7 @@ class ApiService {
 
     try {
       // Exact same request as Postman
-      const url = 'http://192.168.0.101:3000/auth/login';
+      const url = 'http://192.168.0.101:8085/auth/login';
       const payload = {
         email: 'admin@percli.com',
         password: 'admin123',
