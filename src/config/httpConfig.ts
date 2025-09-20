@@ -11,7 +11,7 @@ export interface HttpConfig {
 export const API_CONFIG = {
   // Base URL for the backend API
   BASE_URL: __DEV__
-    ? 'http://192.168.0.101:3000'
+    ? 'http://192.168.0.101:8085'
     : 'https://your-production-api.com',
 
   // API Endpoints
@@ -65,7 +65,7 @@ export const API_CONFIG = {
 // HTTP Configuration for different environments
 export const HTTP_CONFIG: Record<string, HttpConfig> = {
   development: {
-    baseURL: 'http://192.168.0.101:8085',
+    baseURL: 'http://192.168.0.101:3000',
     timeout: 10000,
     retryAttempts: 3,
     retryDelay: 1000,

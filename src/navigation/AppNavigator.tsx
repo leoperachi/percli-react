@@ -6,6 +6,7 @@ import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 import { HomeScreen } from '../screens/HomeScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
 
 export type RootStackParamList = {
@@ -13,6 +14,7 @@ export type RootStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   Home: undefined;
+  Profile: undefined;
   ChangePassword: undefined;
 };
 
@@ -32,6 +34,7 @@ export function AppNavigator() {
         {user ? (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
           </>
         ) : (

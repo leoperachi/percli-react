@@ -49,6 +49,11 @@
 				<true/>
 				<key>NSExceptionMinimumTLSVersion</key>
 				<string>TLSv1.0</string>
+				<key>NSExceptionPortNumbers</key>
+				<array>
+					<integer>3000</integer>
+					<integer>8085</integer>
+				</array>
 			</dict>
 			<key>localhost</key>
 			<dict>

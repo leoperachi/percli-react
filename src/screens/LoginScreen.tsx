@@ -12,11 +12,13 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '../contexts/AppContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export function LoginScreen() {
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setPasswordVisible] = useState(false);
@@ -33,7 +35,7 @@ export function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -42,8 +44,8 @@ export function LoginScreen() {
       >
         {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.title}>Bem-vindo de volta</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Bem-vindo de volta</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.secondary }]}>
             Entre na sua conta para continuar
           </Text>
         </View>
@@ -52,12 +54,12 @@ export function LoginScreen() {
         <View style={styles.form}>
           {/* Email Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>Email</Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
                 placeholder="Digite seu email"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={theme.colors.secondary}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -69,12 +71,12 @@ export function LoginScreen() {
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Senha</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>Senha</Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
                 placeholder="Digite sua senha"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={theme.colors.secondary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!isPasswordVisible}
@@ -97,7 +99,7 @@ export function LoginScreen() {
             style={styles.forgotPassword}
             onPress={() => navigation.navigate('ForgotPassword')}
           >
-            <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
+            <Text style={[styles.forgotPasswordText, { color: theme.colors.accent }]}>Esqueceu sua senha?</Text>
           </TouchableOpacity>
 
           {/* Login Button */}
@@ -109,34 +111,34 @@ export function LoginScreen() {
             onPress={handleLogin}
             disabled={!isFormValid || loading.isLoading}
           >
-            <Text style={styles.loginButtonText}>
+            <Text style={[styles.loginButtonText, { color: '#FFFFFF' }]}>
               {loading.isLoading ? 'Entrando...' : 'Entrar'}
             </Text>
           </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ou</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+            <Text style={[styles.dividerText, { color: theme.colors.secondary }]}>ou</Text>
+            <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
           </View>
 
           {/* Social Login */}
           <TouchableOpacity
-            style={styles.socialButton}
+            style={[styles.socialButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
             onPress={loginWithGoogle}
             disabled={loading.isLoading}
           >
-            <Text style={styles.socialButtonText}>📱 Continuar com Google</Text>
+            <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>📱 Continuar com Google</Text>
           </TouchableOpacity>
 
 
 
           {/* Sign Up Link */}
           <View style={styles.signUpContainer}>
-            <Text style={styles.signUpText}>Não tem uma conta? </Text>
+            <Text style={[styles.signUpText, { color: theme.colors.secondary }]}>Não tem uma conta? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.signUpLink}>Criar conta</Text>
+              <Text style={[styles.signUpLink, { color: theme.colors.accent }]}>Criar conta</Text>
             </TouchableOpacity>
           </View>
         </View>
