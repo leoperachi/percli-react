@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  Switch,
 } from 'react-native';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -39,7 +40,7 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
         <Text style={[styles.title, { color: theme.colors.text }]}>Menu</Text>
       </View>
 
-      <ScrollView style={styles.content}>
+      <View style={styles.content}>
         {/* User Info Section */}
         <View
           style={[
@@ -64,56 +65,146 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
           </View>
         </View>
 
-        {/* Menu Items */}
+        {/* Menu Items - Scrollable Section */}
         <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>🏠</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Home
-            </Text>
-          </TouchableOpacity>
+          <ScrollView
+            style={styles.menuScrollView}
+            showsVerticalScrollIndicator={true}
+            contentContainerStyle={{ paddingBottom: 10 }}
+          >
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>🏠</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Home
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>👤</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Profile
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>👤</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Profile
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>📊</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Analytics
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📊</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Analytics
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>📝</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Reports
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📝</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Reports
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>⚙️</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Settings
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>⚙️</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Settings
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>💬</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Support
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>💬</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Support
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuIcon}>❓</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Help
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>❓</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Help
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📈</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Dashboard
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📋</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Tasks
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📅</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Calendar
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📧</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Messages
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>🔔</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Notifications
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📂</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Documents
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>💰</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Finance
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>🎯</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Goals
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>🔍</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Search
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>📊</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Charts
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>🗂️</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Projects
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuIcon}>👥</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Team
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
 
         {/* Bottom Section */}
@@ -123,12 +214,29 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
             { borderTopColor: theme.colors.border },
           ]}
         >
-          <TouchableOpacity style={styles.menuItem} onPress={toggleTheme}>
-            <Text style={styles.menuIcon}>🌙</Text>
-            <Text style={[styles.menuText, { color: theme.colors.text }]}>
-              Dark Mode
-            </Text>
-          </TouchableOpacity>
+          <View
+            style={[
+              styles.menuItem,
+              styles.settingItem,
+              { borderBottomColor: theme.colors.border },
+            ]}
+          >
+            <View style={styles.settingInfo}>
+              <Text style={styles.menuIcon}>🌙</Text>
+              <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                Dark Mode
+              </Text>
+            </View>
+            <Switch
+              value={theme.isDark}
+              onValueChange={toggleTheme}
+              trackColor={{
+                false: theme.colors.border,
+                true: theme.colors.accent,
+              }}
+              thumbColor={theme.isDark ? '#FFFFFF' : '#FFFFFF'}
+            />
+          </View>
 
           <TouchableOpacity
             style={[
@@ -146,7 +254,7 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
             <Text style={[styles.menuText, styles.logoutText]}>Logout</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -187,6 +295,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderBottomWidth: 1,
     marginBottom: 20,
+    flexShrink: 0, // Não encolhe
   },
   userAvatar: {
     width: 50,
@@ -214,6 +323,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   menuSection: {
+    flex: 1, // Usa todo o espaço disponível
+    marginVertical: 10,
+  },
+  menuScrollView: {
     flex: 1,
   },
   menuItem: {
@@ -238,11 +351,24 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     borderTopWidth: 1,
     marginBottom: 20,
+    flexShrink: 0, // Não encolhe
   },
   logoutItem: {
     marginTop: 10,
   },
   logoutText: {
     color: '#DC2626',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+  },
+  settingInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
 });

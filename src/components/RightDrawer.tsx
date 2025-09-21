@@ -15,7 +15,7 @@ interface RightDrawerProps {
 }
 
 export function RightDrawer({ onClose }: RightDrawerProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [soundEnabled, setSoundEnabled] = React.useState(true);
 
@@ -190,28 +190,6 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
             Quick Settings
           </Text>
 
-          <View
-            style={[
-              styles.settingItem,
-              { borderBottomColor: theme.colors.border },
-            ]}
-          >
-            <View style={styles.settingInfo}>
-              <Text style={styles.settingIcon}>🌙</Text>
-              <Text style={[styles.settingText, { color: theme.colors.text }]}>
-                Dark Mode
-              </Text>
-            </View>
-            <Switch
-              value={theme.isDark}
-              onValueChange={toggleTheme}
-              trackColor={{
-                false: theme.colors.border,
-                true: theme.colors.accent,
-              }}
-              thumbColor={theme.isDark ? '#FFFFFF' : '#FFFFFF'}
-            />
-          </View>
 
           <View
             style={[
