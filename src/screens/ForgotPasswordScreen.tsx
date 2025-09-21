@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '../contexts/AppContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export function ForgotPasswordScreen() {
   const navigation = useNavigation();
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [step, setStep] = useState<'email' | 'success'>('email');
   const { forgotPassword, loading } = useAppContext();
@@ -35,13 +37,13 @@ export function ForgotPasswordScreen() {
     navigation.goBack();
   };
 
-  const isEmailValid = email.trim().length > 0 &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isEmailValid =
+    email.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
   if (step === 'success') {
     return (
       <KeyboardAvoidingView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
@@ -55,25 +57,61 @@ export function ForgotPasswordScreen() {
                 <Text style={styles.iconText}>✅</Text>
               </View>
             </View>
-            <Text style={styles.title}>Email enviado!</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: theme.colors.text }]}>
+              Email enviado!
+            </Text>
+            <Text
+              style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+            >
               Enviamos um link de recuperação para {email}
             </Text>
           </View>
 
           {/* Instructions */}
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Próximos passos:</Text>
-            <Text style={styles.instructionText}>
+          <View
+            style={[
+              styles.instructionsContainer,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+              },
+            ]}
+          >
+            <Text
+              style={[styles.instructionsTitle, { color: theme.colors.text }]}
+            >
+              Próximos passos:
+            </Text>
+            <Text
+              style={[
+                styles.instructionText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               1. Verifique sua caixa de entrada
             </Text>
-            <Text style={styles.instructionText}>
+            <Text
+              style={[
+                styles.instructionText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               2. Clique no link de recuperação
             </Text>
-            <Text style={styles.instructionText}>
+            <Text
+              style={[
+                styles.instructionText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               3. Defina uma nova senha
             </Text>
-            <Text style={styles.instructionText}>
+            <Text
+              style={[
+                styles.instructionText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               4. Faça login com a nova senha
             </Text>
           </View>
@@ -88,10 +126,23 @@ export function ForgotPasswordScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.secondaryButton}
+              style={[
+                styles.secondaryButton,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
               onPress={() => setStep('email')}
             >
-              <Text style={styles.secondaryButtonText}>Enviar novamente</Text>
+              <Text
+                style={[
+                  styles.secondaryButtonText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                Enviar novamente
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -101,7 +152,7 @@ export function ForgotPasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -122,8 +173,12 @@ export function ForgotPasswordScreen() {
               <Text style={styles.iconText}>🔑</Text>
             </View>
           </View>
-          <Text style={styles.title}>Esqueceu sua senha?</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>
+            Esqueceu sua senha?
+          </Text>
+          <Text
+            style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+          >
             Digite seu email e enviaremos um link para redefinir sua senha
           </Text>
         </View>
@@ -132,12 +187,21 @@ export function ForgotPasswordScreen() {
         <View style={styles.form}>
           {/* Email Input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>
+              Email
+            </Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text,
+                  },
+                ]}
                 placeholder="Digite seu email"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={theme.colors.textSecondary}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -152,10 +216,23 @@ export function ForgotPasswordScreen() {
           </View>
 
           {/* Info Box */}
-          <View style={styles.infoContainer}>
-            <Text style={styles.infoTitle}>💡 Dica importante</Text>
-            <Text style={styles.infoText}>
-              Verifique sua caixa de spam se não receber o email em alguns minutos.
+          <View
+            style={[
+              styles.infoContainer,
+              {
+                backgroundColor: theme.isDark
+                  ? theme.colors.surface
+                  : '#F0FDF4',
+                borderLeftColor: theme.colors.success,
+              },
+            ]}
+          >
+            <Text style={[styles.infoTitle, { color: theme.colors.success }]}>
+              💡 Dica importante
+            </Text>
+            <Text style={[styles.infoText, { color: theme.colors.success }]}>
+              Verifique sua caixa de spam se não receber o email em alguns
+              minutos.
             </Text>
           </View>
 
@@ -179,8 +256,14 @@ export function ForgotPasswordScreen() {
             onPress={handleBackToLogin}
             disabled={loading.isLoading}
           >
-            <Text style={styles.backToLoginText}>
-              Lembrou da senha? <Text style={styles.loginLink}>Fazer login</Text>
+            <Text
+              style={[
+                styles.backToLoginText,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
+              Lembrou da senha?{' '}
+              <Text style={styles.loginLink}>Fazer login</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -192,7 +275,6 @@ export function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -255,13 +337,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#111827',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 16,
@@ -275,21 +355,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
   },
   inputWrapper: {
     position: 'relative',
   },
   input: {
-    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
-    color: '#111827',
   },
   errorText: {
     fontSize: 12,
@@ -297,22 +373,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   infoContainer: {
-    backgroundColor: '#F0FDF4',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
     borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
   },
   infoTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#047857',
     marginBottom: 4,
   },
   infoText: {
     fontSize: 14,
-    color: '#047857',
     lineHeight: 20,
   },
   sendButton: {
@@ -346,29 +418,24 @@ const styles = StyleSheet.create({
   },
   backToLoginText: {
     fontSize: 14,
-    color: '#6B7280',
   },
   loginLink: {
     color: '#6366F1',
     fontWeight: '600',
   },
   instructionsContainer: {
-    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     padding: 20,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
   },
   instructionsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
     marginBottom: 12,
   },
   instructionText: {
     fontSize: 14,
-    color: '#475569',
     lineHeight: 20,
     marginBottom: 8,
   },
@@ -395,9 +462,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   secondaryButton: {
-    backgroundColor: '#F9FAFB',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -406,6 +471,5 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#6B7280',
   },
 });

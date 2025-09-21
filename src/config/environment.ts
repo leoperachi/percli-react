@@ -1,48 +1,28 @@
-// Environment Configuration
+import Config from 'react-native-config';
 
+// Environment Configuration
 export interface EnvironmentConfig {
   API_BASE_URL: string;
   API_TIMEOUT: number;
   ENABLE_LOGGING: boolean;
   ENVIRONMENT: 'development' | 'staging' | 'production';
+  APP_NAME: string;
+  APP_VERSION: string;
 }
 
-// Development environment
-const developmentConfig: EnvironmentConfig = {
-  API_BASE_URL: 'http://192.168.0.101:8085',
-  API_TIMEOUT: 10000,
-  ENABLE_LOGGING: true,
-  ENVIRONMENT: 'development',
+// Get configuration from .env file with fallbacks
+const getConfig = (): EnvironmentConfig => {
+  return {
+    API_BASE_URL: Config.API_BASE_URL || 'http://localhost:3000',
+    API_TIMEOUT: parseInt(Config.API_TIMEOUT || '10000', 10),
+    ENABLE_LOGGING: Config.ENABLE_LOGGING === 'true',
+    ENVIRONMENT: (Config.ENVIRONMENT as any) || (__DEV__ ? 'development' : 'production'),
+    APP_NAME: Config.APP_NAME || 'Percli',
+    APP_VERSION: Config.APP_VERSION || '1.0.0',
+  };
 };
 
-// Staging environment
-const stagingConfig: EnvironmentConfig = {
-  API_BASE_URL: 'https://staging-api.pertech.com',
-  API_TIMEOUT: 15000,
-  ENABLE_LOGGING: true,
-  ENVIRONMENT: 'staging',
-};
-
-// Production environment
-const productionConfig: EnvironmentConfig = {
-  API_BASE_URL: 'https://api.pertech.com',
-  API_TIMEOUT: 15000,
-  ENABLE_LOGGING: false,
-  ENVIRONMENT: 'production',
-};
-
-// Determine current environment based on __DEV__ flag
-const getCurrentConfig = (): EnvironmentConfig => {
-  if (__DEV__) {
-    return developmentConfig;
-  }
-
-  // You can add more logic here to determine staging vs production
-  // For example, based on build configuration or environment variables
-  return productionConfig;
-};
-
-export const ENV = getCurrentConfig();
+export const ENV = getConfig();
 
 // Helper functions
 export const isDevelopment = () => ENV.ENVIRONMENT === 'development';

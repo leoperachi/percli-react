@@ -1,9 +1,9 @@
+import { ENV } from './environment';
+
 // API Configuration
 export const API_CONFIG = {
-  // Base URL for the backend API
-  BASE_URL: __DEV__
-    ? 'http://192.168.0.101:8085'
-    : 'https://your-production-api.com',
+  // Base URL for the backend API - now using environment variables
+  BASE_URL: ENV.API_BASE_URL,
 
   // API Endpoints
   ENDPOINTS: {

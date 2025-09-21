@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  StatusBar,
   Image,
   TextInput,
   Modal,
@@ -14,6 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { MainLayout } from '../components/MainLayout';
 
 export function ProfileScreen() {
   const navigation = useNavigation();
@@ -29,28 +29,12 @@ export function ProfileScreen() {
     setIsEditModalVisible(false);
   };
 
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar
-        barStyle={theme.isDark ? "light-content" : "dark-content"}
-        backgroundColor={theme.colors.background}
-      />
-
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.background }]}>
-        <TouchableOpacity style={styles.menuButton}>
-          <View style={[styles.menuLine, { backgroundColor: theme.colors.secondary }]} />
-          <View style={[styles.menuLine, { backgroundColor: theme.colors.secondary }]} />
-          <View style={[styles.menuLine, { backgroundColor: theme.colors.secondary }]} />
-        </TouchableOpacity>
-
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Profile</Text>
-
-        <TouchableOpacity style={styles.settingsButton}>
-          <Text style={styles.settingsIcon}>⚙️</Text>
-        </TouchableOpacity>
-      </View>
-
+    <MainLayout title="Profile" leftIcon="back" onLeftPress={handleBackPress}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Section */}
         <View style={styles.profileSection}>
@@ -61,26 +45,46 @@ export function ProfileScreen() {
               }}
               style={styles.profileImage}
             />
-            <View style={[styles.statusIndicator, { borderColor: theme.colors.background }]}>
+            <View
+              style={[
+                styles.statusIndicator,
+                { borderColor: theme.colors.background },
+              ]}
+            >
               <Text style={styles.statusIcon}>⚡</Text>
             </View>
           </View>
 
           <View style={styles.profileInfo}>
-            <Text style={[styles.userName, { color: theme.colors.text }]}>{user?.name || 'Angelica Jackson'}</Text>
-            <Text style={[styles.userRole, { color: theme.colors.secondary }]}>Analyzer</Text>
+            <Text style={[styles.userName, { color: theme.colors.text }]}>
+              {user?.name || 'Angelica Jackson'}
+            </Text>
+            <Text style={[styles.userRole, { color: theme.colors.secondary }]}>
+              Analyzer
+            </Text>
             <TouchableOpacity
               style={styles.changeProfileButton}
               onPress={() => setIsEditModalVisible(true)}
             >
-              <Text style={[styles.changeProfileText, { color: theme.colors.secondary }]}>Change profile</Text>
+              <Text
+                style={[
+                  styles.changeProfileText,
+                  { color: theme.colors.secondary },
+                ]}
+              >
+                Change profile
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Strong Side Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.secondary }]}>Strong side:</Text>
+          <Text
+            style={[styles.sectionTitle, { color: theme.colors.secondary }]}
+          >
+            Strong side:
+          </Text>
           <View style={styles.tagsContainer}>
             <View style={[styles.tag, styles.tagBlue]}>
               <Text style={styles.tagText}>Analytics</Text>
@@ -96,7 +100,11 @@ export function ProfileScreen() {
 
         {/* Weak Side Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.secondary }]}>Weak side:</Text>
+          <Text
+            style={[styles.sectionTitle, { color: theme.colors.secondary }]}
+          >
+            Weak side:
+          </Text>
           <View style={styles.tagsContainer}>
             <View style={[styles.tag, styles.tagPink]}>
               <Text style={styles.tagText}>Perfectionism</Text>
@@ -109,34 +117,68 @@ export function ProfileScreen() {
 
         {/* My Reports Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.secondary }]}>My Reports:</Text>
+          <Text
+            style={[styles.sectionTitle, { color: theme.colors.secondary }]}
+          >
+            My Reports:
+          </Text>
 
           {/* Reports Grid */}
           <View style={styles.reportsGrid}>
             {/* Row 1 */}
             <View style={styles.reportsRow}>
-              <TouchableOpacity style={[styles.reportCard, styles.reportCard1, { backgroundColor: theme.colors.surface }]}>
+              <TouchableOpacity
+                style={[
+                  styles.reportCard,
+                  styles.reportCard1,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+              >
                 <View style={styles.reportBookmark}>
                   <Text style={styles.bookmarkIcon}>🔖</Text>
                 </View>
                 <View style={styles.reportIcon}>
                   <Text style={styles.reportIconText}>👤</Text>
                 </View>
-                <Text style={[styles.reportTitle, { color: theme.colors.text }]}>Astro- psychological report</Text>
-                <Text style={[styles.reportDescription, { color: theme.colors.secondary }]}>
+                <Text
+                  style={[styles.reportTitle, { color: theme.colors.text }]}
+                >
+                  Astro- psychological report
+                </Text>
+                <Text
+                  style={[
+                    styles.reportDescription,
+                    { color: theme.colors.secondary },
+                  ]}
+                >
                   Some short description of this type of report.
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.reportCard, styles.reportCard2, { backgroundColor: theme.colors.surface }]}>
+              <TouchableOpacity
+                style={[
+                  styles.reportCard,
+                  styles.reportCard2,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+              >
                 <View style={styles.reportBookmark}>
                   <Text style={styles.bookmarkIcon}>🔖</Text>
                 </View>
                 <View style={styles.reportIcon}>
                   <Text style={styles.reportIconText}>📅</Text>
                 </View>
-                <Text style={[styles.reportTitle, { color: theme.colors.text }]}>Monthly prediction report</Text>
-                <Text style={[styles.reportDescription, { color: theme.colors.secondary }]}>
+                <Text
+                  style={[styles.reportTitle, { color: theme.colors.text }]}
+                >
+                  Monthly prediction report
+                </Text>
+                <Text
+                  style={[
+                    styles.reportDescription,
+                    { color: theme.colors.secondary },
+                  ]}
+                >
                   Some short description of this type of report.
                 </Text>
               </TouchableOpacity>
@@ -144,28 +186,58 @@ export function ProfileScreen() {
 
             {/* Row 2 */}
             <View style={styles.reportsRow}>
-              <TouchableOpacity style={[styles.reportCard, styles.reportCard3, { backgroundColor: theme.colors.surface }]}>
+              <TouchableOpacity
+                style={[
+                  styles.reportCard,
+                  styles.reportCard3,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+              >
                 <View style={styles.reportBookmark}>
                   <Text style={styles.bookmarkIcon}>🔖</Text>
                 </View>
                 <View style={styles.reportIcon}>
                   <Text style={styles.reportIconText}>✅</Text>
                 </View>
-                <Text style={[styles.reportTitle, { color: theme.colors.text }]}>Daily Prediction</Text>
-                <Text style={[styles.reportDescription, { color: theme.colors.secondary }]}>
+                <Text
+                  style={[styles.reportTitle, { color: theme.colors.text }]}
+                >
+                  Daily Prediction
+                </Text>
+                <Text
+                  style={[
+                    styles.reportDescription,
+                    { color: theme.colors.secondary },
+                  ]}
+                >
                   Some short description of this type of report.
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.reportCard, styles.reportCard4, { backgroundColor: theme.colors.surface }]}>
+              <TouchableOpacity
+                style={[
+                  styles.reportCard,
+                  styles.reportCard4,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+              >
                 <View style={styles.reportBookmark}>
                   <Text style={styles.bookmarkIcon}>🔖</Text>
                 </View>
                 <View style={styles.reportIcon}>
                   <Text style={styles.reportIconText}>💝</Text>
                 </View>
-                <Text style={[styles.reportTitle, { color: theme.colors.text }]}>Love report</Text>
-                <Text style={[styles.reportDescription, { color: theme.colors.secondary }]}>
+                <Text
+                  style={[styles.reportTitle, { color: theme.colors.text }]}
+                >
+                  Love report
+                </Text>
+                <Text
+                  style={[
+                    styles.reportDescription,
+                    { color: theme.colors.secondary },
+                  ]}
+                >
                   Some short description of this type of report.
                 </Text>
               </TouchableOpacity>
@@ -174,40 +246,34 @@ export function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={[styles.bottomNav, { backgroundColor: theme.colors.background, borderTopColor: theme.colors.border }]}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Text style={styles.navIcon}>🏠</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>👤</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>💬</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>📊</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={logout}>
-          <Text style={styles.navIcon}>🌙</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Edit Profile Modal */}
       <Modal
         visible={isEditModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.colors.background }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+        <SafeAreaView
+          style={[
+            styles.modalContainer,
+            { backgroundColor: theme.colors.background },
+          ]}
+        >
+          <View
+            style={[
+              styles.modalHeader,
+              { borderBottomColor: theme.colors.border },
+            ]}
+          >
             <TouchableOpacity onPress={() => setIsEditModalVisible(false)}>
-              <Text style={[styles.modalCancel, { color: theme.colors.secondary }]}>Cancel</Text>
+              <Text
+                style={[styles.modalCancel, { color: theme.colors.secondary }]}
+              >
+                Cancel
+              </Text>
             </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Edit Profile</Text>
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+              Edit Profile
+            </Text>
             <TouchableOpacity onPress={handleSaveProfile}>
               <Text style={styles.modalSave}>Save</Text>
             </TouchableOpacity>
@@ -215,9 +281,18 @@ export function ProfileScreen() {
 
           <View style={styles.modalContent}>
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Name</Text>
+              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>
+                Name
+              </Text>
               <TextInput
-                style={[styles.textInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text,
+                  },
+                ]}
                 value={editedName}
                 onChangeText={setEditedName}
                 placeholder="Enter your name"
@@ -225,9 +300,18 @@ export function ProfileScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Role</Text>
+              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>
+                Role
+              </Text>
               <TextInput
-                style={[styles.textInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text,
+                  },
+                ]}
                 value={editedRole}
                 onChangeText={setEditedRole}
                 placeholder="Enter your role"
@@ -235,9 +319,18 @@ export function ProfileScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Email</Text>
+              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>
+                Email
+              </Text>
               <TextInput
-                style={[styles.textInput, styles.disabledInput, { backgroundColor: theme.colors.border, color: theme.colors.secondary }]}
+                style={[
+                  styles.textInput,
+                  styles.disabledInput,
+                  {
+                    backgroundColor: theme.colors.border,
+                    color: theme.colors.secondary,
+                  },
+                ]}
                 value={user?.email}
                 editable={false}
                 placeholder="Email (read-only)"
@@ -246,43 +339,11 @@ export function ProfileScreen() {
           </View>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+    </MainLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#FFFFFF',
-  },
-  menuButton: {
-    padding: 8,
-  },
-  menuLine: {
-    width: 20,
-    height: 2,
-    backgroundColor: '#666',
-    marginVertical: 2,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  settingsButton: {
-    padding: 8,
-  },
-  settingsIcon: {
-    fontSize: 20,
-  },
   content: {
     flex: 1,
     paddingHorizontal: 20,
@@ -431,22 +492,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     lineHeight: 16,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    padding: 10,
-  },
-  navIcon: {
-    fontSize: 24,
   },
   // Modal Styles
   modalContainer: {

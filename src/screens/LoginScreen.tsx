@@ -19,8 +19,8 @@ const { width } = Dimensions.get('window');
 export function LoginScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@percli.com');
+  const [password, setPassword] = useState('admin123');
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const { login, loading, loginWithGoogle } = useAppContext();
 
@@ -44,7 +44,9 @@ export function LoginScreen() {
       >
         {/* Header Section */}
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Bem-vindo de volta</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>
+            Bem-vindo de volta
+          </Text>
           <Text style={[styles.subtitle, { color: theme.colors.secondary }]}>
             Entre na sua conta para continuar
           </Text>
@@ -54,10 +56,19 @@ export function LoginScreen() {
         <View style={styles.form}>
           {/* Email Input */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: theme.colors.text }]}>Email</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>
+              Email
+            </Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text,
+                  },
+                ]}
                 placeholder="Digite seu email"
                 placeholderTextColor={theme.colors.secondary}
                 value={email}
@@ -71,10 +82,19 @@ export function LoginScreen() {
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: theme.colors.text }]}>Senha</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>
+              Senha
+            </Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text,
+                  },
+                ]}
                 placeholder="Digite sua senha"
                 placeholderTextColor={theme.colors.secondary}
                 value={password}
@@ -99,7 +119,14 @@ export function LoginScreen() {
             style={styles.forgotPassword}
             onPress={() => navigation.navigate('ForgotPassword')}
           >
-            <Text style={[styles.forgotPasswordText, { color: theme.colors.accent }]}>Esqueceu sua senha?</Text>
+            <Text
+              style={[
+                styles.forgotPasswordText,
+                { color: theme.colors.accent },
+              ]}
+            >
+              Esqueceu sua senha?
+            </Text>
           </TouchableOpacity>
 
           {/* Login Button */}
@@ -118,27 +145,55 @@ export function LoginScreen() {
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
-            <Text style={[styles.dividerText, { color: theme.colors.secondary }]}>ou</Text>
-            <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+            <View
+              style={[
+                styles.dividerLine,
+                { backgroundColor: theme.colors.border },
+              ]}
+            />
+            <Text
+              style={[styles.dividerText, { color: theme.colors.secondary }]}
+            >
+              ou
+            </Text>
+            <View
+              style={[
+                styles.dividerLine,
+                { backgroundColor: theme.colors.border },
+              ]}
+            />
           </View>
 
           {/* Social Login */}
           <TouchableOpacity
-            style={[styles.socialButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+            style={[
+              styles.socialButton,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+              },
+            ]}
             onPress={loginWithGoogle}
             disabled={loading.isLoading}
           >
-            <Text style={[styles.socialButtonText, { color: theme.colors.text }]}>📱 Continuar com Google</Text>
+            <Text
+              style={[styles.socialButtonText, { color: theme.colors.text }]}
+            >
+              📱 Continuar com Google
+            </Text>
           </TouchableOpacity>
-
-
 
           {/* Sign Up Link */}
           <View style={styles.signUpContainer}>
-            <Text style={[styles.signUpText, { color: theme.colors.secondary }]}>Não tem uma conta? </Text>
+            <Text
+              style={[styles.signUpText, { color: theme.colors.secondary }]}
+            >
+              Não tem uma conta?{' '}
+            </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={[styles.signUpLink, { color: theme.colors.accent }]}>Criar conta</Text>
+              <Text style={[styles.signUpLink, { color: theme.colors.accent }]}>
+                Criar conta
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

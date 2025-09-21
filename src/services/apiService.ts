@@ -406,7 +406,7 @@ class ApiService {
     password: string,
   ): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await fetch('http://192.168.0.101:8085/auth/login', {
+      const response = await fetch(`${ENV.API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -532,7 +532,7 @@ class ApiService {
   // Google Authentication - Authorization Code Flow
   async googleAuth(authorizationCode: string): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response = await fetch('http://192.168.0.101:8085/auth/google', {
+      const response = await fetch(`${ENV.API_BASE_URL}/auth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -572,7 +572,7 @@ class ApiService {
 
     try {
       // Exact same request as Postman
-      const url = 'http://192.168.0.101:8085/auth/login';
+      const url = `${ENV.API_BASE_URL}/auth/login`;
       const payload = {
         email: 'admin@percli.com',
         password: 'admin123',
@@ -626,7 +626,7 @@ class ApiService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        url: 'http://192.168.0.101:3000/auth/login',
+        url: `${ENV.API_BASE_URL}/auth/login`,
         payload: { email: 'admin@percli.com', password: 'admin123' },
       };
     }

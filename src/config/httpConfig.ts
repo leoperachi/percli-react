@@ -1,3 +1,5 @@
+import { ENV } from './environment';
+
 // HTTP Configuration
 export interface HttpConfig {
   baseURL: string;
@@ -9,10 +11,8 @@ export interface HttpConfig {
 
 // API Configuration
 export const API_CONFIG = {
-  // Base URL for the backend API
-  BASE_URL: __DEV__
-    ? 'http://192.168.0.101:8085'
-    : 'https://your-production-api.com',
+  // Base URL for the backend API - now using environment variables
+  BASE_URL: ENV.API_BASE_URL,
 
   // API Endpoints
   ENDPOINTS: {
@@ -62,30 +62,18 @@ export const API_CONFIG = {
   },
 };
 
-// HTTP Configuration for different environments
-export const HTTP_CONFIG: Record<string, HttpConfig> = {
-  development: {
-    baseURL: 'http://192.168.0.101:3000',
-    timeout: 10000,
-    retryAttempts: 3,
-    retryDelay: 1000,
-    enableLogging: true,
-  },
-  staging: {
-    baseURL: 'https://staging-api.pertech.com',
-    timeout: 15000,
-    retryAttempts: 2,
-    retryDelay: 2000,
-    enableLogging: true,
-  },
-  production: {
-    baseURL: 'https://api.pertech.com',
-    timeout: 15000,
-    retryAttempts: 2,
-    retryDelay: 2000,
-    enableLogging: false,
-  },
+// HTTP Configuration using environment variables
+export const getCurrentHttpConfig = (): HttpConfig => {
+  return {
+    baseURL: ENV.API_BASE_URL,
+    timeout: ENV.API_TIMEOUT,
+    retryAttempts: ENV.ENVIRONMENT === 'development' ? 3 : 2,
+    retryDelay: ENV.ENVIRONMENT === 'development' ? 1000 : 2000,
+    enableLogging: ENV.ENABLE_LOGGING,
+  };
 };
+
+export const HTTP_CONFIG = getCurrentHttpConfig();
 
 // Helper function to build full URL
 export const buildUrl = (
