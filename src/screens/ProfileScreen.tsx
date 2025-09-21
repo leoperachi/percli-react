@@ -40,9 +40,7 @@ export function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={{
-                uri: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=400&fit=crop&crop=face',
-              }}
+              source={require('../assets/images/illustrations/user.png')}
               style={styles.profileImage}
             />
             <View

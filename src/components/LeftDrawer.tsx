@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNavigation } from '@react-navigation/native';
 
 interface LeftDrawerProps {
   onClose: () => void;
@@ -18,6 +19,12 @@ interface LeftDrawerProps {
 export function LeftDrawer({ onClose }: LeftDrawerProps) {
   const { user, logout } = useAppContext();
   const { theme, toggleTheme } = useTheme();
+  const navigation = useNavigation();
+
+  const handleProfilePress = () => {
+    onClose();
+    navigation.navigate('EditProfile' as never);
+  };
 
   return (
     <SafeAreaView
@@ -42,11 +49,12 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
 
       <View style={styles.content}>
         {/* User Info Section */}
-        <View
+        <TouchableOpacity
           style={[
             styles.userSection,
             { borderBottomColor: theme.colors.border },
           ]}
+          onPress={handleProfilePress}
         >
           <View style={styles.userAvatar}>
             <Text style={styles.userInitial}>
@@ -55,15 +63,15 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
           </View>
           <View style={styles.userInfo}>
             <Text style={[styles.userName, { color: theme.colors.text }]}>
-              Administrador
+              {user?.name || 'Administrador'}
             </Text>
             <Text
               style={[styles.userEmail, { color: theme.colors.textSecondary }]}
             >
-              admin@percli.com
+              {user?.email || 'admin@percli.com'}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Menu Items - Scrollable Section */}
         <View style={styles.menuSection}>
