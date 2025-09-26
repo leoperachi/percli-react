@@ -1,8 +1,41 @@
+export interface Menu {
+  id: number;
+  name: string;
+  description: string;
+  resource: string;
+  action: string;
+  uplevel: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuthorizationResource {
+  resource: string;
+  menus: Menu[];
+}
+
+export interface Authorization {
+  id: number;
+  father: string;
+  children: AuthorizationResource[];
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  authorizations: Authorization[];
+}
+
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: string;
+  role: Role;
   isActive: boolean;
   emailVerified?: boolean;
   createdAt: string;
@@ -81,4 +114,56 @@ export interface AppContextType {
   showMessage: (type: MessageState['type'], message: string) => void;
   hideMessage: () => void;
   loginWithGoogle: () => Promise<boolean>;
+}
+
+// Chat-related interfaces
+export interface ChatUser {
+  id: string;
+  name: string;
+  avatar?: string;
+  isOnline: boolean;
+  lastSeen?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  senderId: string;
+  receiverId: string;
+  chatId: string;
+  timestamp: string;
+  isRead: boolean;
+  messageType: 'text' | 'image' | 'file';
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  replyTo?: string; // Message ID this is replying to
+}
+
+export interface Chat {
+  id: string;
+  participants: ChatUser[];
+  lastMessage?: ChatMessage;
+  lastActivity: string;
+  unreadCount: number;
+  chatType: 'direct' | 'group';
+  chatName?: string; // For group chats
+  chatAvatar?: string; // For group chats
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatContextType {
+  chats: Chat[];
+  currentChat: Chat | null;
+  messages: ChatMessage[];
+  loading: boolean;
+  error: string | null;
+  loadChats: () => Promise<void>;
+  loadMessages: (chatId: string) => Promise<void>;
+  sendMessage: (text: string, receiverId: string, replyTo?: string) => Promise<void>;
+  markAsRead: (chatId: string) => Promise<void>;
+  createChat: (participantId: string) => Promise<Chat | null>;
+  setCurrentChat: (chat: Chat | null) => void;
+  clearMessages: () => void;
 }

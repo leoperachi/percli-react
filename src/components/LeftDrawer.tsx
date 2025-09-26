@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,23 +7,158 @@ import {
   SafeAreaView,
   ScrollView,
   Switch,
+  Animated,
 } from 'react-native';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import { Authorization, AuthorizationResource, Menu } from '../types';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 interface LeftDrawerProps {
   onClose: () => void;
 }
 
+type NavigationProp = StackNavigationProp<RootStackParamList>;
+
 export function LeftDrawer({ onClose }: LeftDrawerProps) {
   const { user, logout } = useAppContext();
   const { theme, toggleTheme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
+  const [expandedAuthorizations, setExpandedAuthorizations] = useState<
+    Set<string>
+  >(new Set());
+  const [expandedResources, setExpandedResources] = useState<Set<string>>(
+    new Set(),
+  );
 
   const handleProfilePress = () => {
     onClose();
     navigation.navigate('EditProfile' as never);
+  };
+
+  const handleChatPress = () => {
+    onClose();
+    navigation.navigate('ChatList' as never);
+  };
+
+  const toggleAuthorization = (authId: string) => {
+    const newExpanded = new Set(expandedAuthorizations);
+    if (newExpanded.has(authId)) {
+      newExpanded.delete(authId);
+    } else {
+      newExpanded.add(authId);
+    }
+    setExpandedAuthorizations(newExpanded);
+  };
+
+  const toggleResource = (resourceKey: string) => {
+    const newExpanded = new Set(expandedResources);
+    if (newExpanded.has(resourceKey)) {
+      newExpanded.delete(resourceKey);
+    } else {
+      newExpanded.add(resourceKey);
+    }
+    setExpandedResources(newExpanded);
+  };
+
+  // Remove renderMenuItem since we won't render the individual menus
+
+  const getScreenNameFromResource = (resource: string): keyof RootStackParamList | null => {
+    const resourceScreenMap: { [key: string]: keyof RootStackParamList } = {
+      users: 'Users',
+      roles: 'Roles',
+      authorizations: 'Authorizations',
+    };
+    return resourceScreenMap[resource.toLowerCase()] || null;
+  };
+
+  const handleResourcePress = (resource: AuthorizationResource) => {
+    const screenName = getScreenNameFromResource(resource.resource);
+    if (screenName) {
+      onClose(); // Close drawer first
+      navigation.navigate(screenName);
+    }
+  };
+
+  const renderResourceItem = (
+    resource: AuthorizationResource,
+    authId: number,
+  ) => {
+    const resourceKey = `${authId}-${resource.resource}`;
+    const canNavigate = getScreenNameFromResource(resource.resource) !== null;
+
+    return (
+      <View key={resourceKey} style={styles.authorizationContainer}>
+        <TouchableOpacity
+          style={[
+            styles.resourceItem,
+            { backgroundColor: theme.colors.surface },
+            canNavigate && styles.resourceItemClickable,
+          ]}
+          onPress={() => handleResourcePress(resource)}
+          disabled={!canNavigate}
+        >
+          <Text style={[styles.resourceText, { color: theme.colors.text }]}>
+            {resource.resource.charAt(0).toUpperCase() +
+              resource.resource.slice(1)}
+          </Text>
+          {canNavigate && (
+            <Text style={[styles.navigationIcon, { color: theme.colors.textSecondary }]}>
+              →
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderAuthorizationItem = (auth: Authorization) => {
+    const authKey = auth.id.toString();
+    const isExpanded = expandedAuthorizations.has(authKey);
+    const hasChildren = auth.children && auth.children.length > 0;
+
+    return (
+      <View key={auth.id} style={styles.authorizationContainer}>
+        <TouchableOpacity
+          style={[
+            styles.authorizationItem,
+            { backgroundColor: theme.colors.surface },
+          ]}
+          onPress={() => hasChildren && toggleAuthorization(authKey)}
+          disabled={!hasChildren}
+        >
+          <Text
+            style={[styles.authorizationText, { color: theme.colors.text }]}
+          >
+            {auth.father}
+          </Text>
+          {hasChildren && (
+            <Animated.View
+              style={[
+                styles.arrowIcon,
+                {
+                  transform: [{ rotate: isExpanded ? '90deg' : '0deg' }],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.arrowIconText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                ▶
+              </Text>
+            </Animated.View>
+          )}
+        </TouchableOpacity>
+        {hasChildren &&
+          isExpanded &&
+          auth.children.map(resource => renderResourceItem(resource, auth.id))}
+      </View>
+    );
   };
 
   return (
@@ -80,138 +215,34 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
             showsVerticalScrollIndicator={true}
             contentContainerStyle={{ paddingBottom: 10 }}
           >
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>🏠</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Home
-              </Text>
-            </TouchableOpacity>
+            {/* Chat Section */}
+            <View style={styles.menuItemsSection}>
+              <TouchableOpacity
+                style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
+                onPress={handleChatPress}
+              >
+                <Text style={styles.menuIcon}>💬</Text>
+                <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                  Conversas
+                </Text>
+                <Text style={[styles.navigationIcon, { color: theme.colors.textSecondary }]}>
+                  →
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>👤</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Profile
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📊</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Analytics
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📝</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Reports
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>⚙️</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Settings
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>💬</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Support
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>❓</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Help
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📈</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Dashboard
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📋</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Tasks
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📅</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Calendar
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📧</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Messages
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>🔔</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Notifications
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📂</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Documents
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>💰</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Finance
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>🎯</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Goals
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>🔍</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Search
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>📊</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Charts
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>🗂️</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Projects
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuIcon}>👥</Text>
-              <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                Team
-              </Text>
-            </TouchableOpacity>
+            {/* Authorizations Section */}
+            {user?.role?.authorizations &&
+              user.role.authorizations.length > 0 && (
+                <View style={styles.authorizationsSection}>
+                  <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>
+                    Autorizações
+                  </Text>
+                  {user.role.authorizations.map(auth =>
+                    renderAuthorizationItem(auth),
+                  )}
+                </View>
+              )}
           </ScrollView>
         </View>
 
@@ -275,8 +306,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
   closeButton: {
@@ -295,44 +326,44 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
   },
   userSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    marginBottom: 20,
+    marginBottom: 12,
     flexShrink: 0, // Não encolhe
   },
   userAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#6366F1',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 12,
   },
   userInitial: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: 13,
   },
   menuSection: {
     flex: 1, // Usa todo o espaço disponível
-    marginVertical: 10,
+    marginVertical: 6,
   },
   menuScrollView: {
     flex: 1,
@@ -340,29 +371,29 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderRadius: 8,
-    marginBottom: 5,
+    marginBottom: 3,
   },
   menuIcon: {
-    fontSize: 20,
-    marginRight: 15,
-    width: 25,
+    fontSize: 18,
+    marginRight: 12,
+    width: 22,
     textAlign: 'center',
   },
   menuText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
   },
   bottomSection: {
-    paddingTop: 20,
+    paddingTop: 12,
     borderTopWidth: 1,
-    marginBottom: 20,
+    marginBottom: 10,
     flexShrink: 0, // Não encolhe
   },
   logoutItem: {
-    marginTop: 10,
+    marginTop: 8,
   },
   logoutText: {
     color: '#DC2626',
@@ -371,12 +402,77 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
   settingInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+  },
+  menuItemsSection: {
+    marginVertical: 8,
+  },
+  authorizationsSection: {
+    marginVertical: 8,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    paddingHorizontal: 8,
+  },
+  authorizationContainer: {
+    marginBottom: 2,
+  },
+  authorizationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 2,
+  },
+  authorizationText: {
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
+  },
+  resourceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingLeft: 20,
+    paddingRight: 12,
+    borderRadius: 8,
+    marginBottom: 2,
+  },
+  resourceItemClickable: {
+    opacity: 0.8,
+  },
+  resourceText: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  navigationIcon: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  arrowIcon: {
+    marginLeft: 8,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  arrowIconText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

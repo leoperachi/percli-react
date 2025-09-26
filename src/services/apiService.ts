@@ -417,6 +417,9 @@ class ApiService {
       const text = await response.text();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          return { success: false, error: 'Usuário ou senha inválidos' };
+        }
         return { success: false, error: `HTTP ${response.status}` };
       }
 

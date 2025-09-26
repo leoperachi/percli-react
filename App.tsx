@@ -8,6 +8,7 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from './src/contexts/AppContext';
 import { ThemeProvider } from './src/contexts/ThemeContext';
+import { ChatProvider } from './src/contexts/ChatContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { LoadingOverlay } from './src/components/LoadingOverlay';
 import { MessageToast } from './src/components/MessageToast';
@@ -23,9 +24,11 @@ function App() {
           backgroundColor="#FFFFFF"
         />
         <AppProvider>
-          <AppNavigator />
-          <LoadingOverlay />
-          <MessageToast />
+          <ChatProvider>
+            <AppNavigator />
+            <LoadingOverlay />
+            <MessageToast />
+          </ChatProvider>
         </AppProvider>
       </ThemeProvider>
     </SafeAreaProvider>

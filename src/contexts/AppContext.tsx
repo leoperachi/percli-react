@@ -135,20 +135,12 @@ export function AppProvider({ children }: AppProviderProps) {
       const response = await apiService.register(email, password, name);
 
       if (response.success && response.data) {
-        // Registration successful - now auto-login the user
-        dispatch({
-          type: 'SET_LOADING',
-          payload: { isLoading: true, message: 'Fazendo login automático...' }
-        });
+        // Registration successful - check if backend returned user data for auto-login
+        console.log('🔥 [REGISTER] Registration successful, checking for user data...');
 
-        console.log('🔥 [REGISTER] Registration successful, attempting auto-login...');
-
-        // Attempt automatic login with the same credentials
-        const loginResponse = await apiService.login(email, password);
-
-        if (loginResponse.success && loginResponse.data) {
-          // Auto-login successful
-          dispatch({ type: 'SET_USER', payload: loginResponse.data.user });
+        if (response.data.user) {
+          // Backend returned user data, set user directly (auto-login)
+          dispatch({ type: 'SET_USER', payload: response.data.user });
           dispatch({
             type: 'SET_MESSAGE',
             payload: {
@@ -157,20 +149,45 @@ export function AppProvider({ children }: AppProviderProps) {
               visible: true
             }
           });
-          console.log('🔥 [REGISTER] Auto-login successful');
+          console.log('🔥 [REGISTER] Auto-login successful with registration response');
           return true;
         } else {
-          // Registration succeeded but auto-login failed
+          // Backend didn't return user data, attempt manual login
           dispatch({
-            type: 'SET_MESSAGE',
-            payload: {
-              type: 'success',
-              message: 'Conta criada com sucesso! Faça login para continuar.',
-              visible: true
-            }
+            type: 'SET_LOADING',
+            payload: { isLoading: true, message: 'Fazendo login automático...' }
           });
-          console.log('🔥 [REGISTER] Registration successful but auto-login failed');
-          return true; // Still return true because registration succeeded
+
+          console.log('🔥 [REGISTER] No user data in registration response, attempting manual login...');
+
+          const loginResponse = await apiService.login(email, password);
+
+          if (loginResponse.success && loginResponse.data) {
+            // Auto-login successful
+            dispatch({ type: 'SET_USER', payload: loginResponse.data.user });
+            dispatch({
+              type: 'SET_MESSAGE',
+              payload: {
+                type: 'success',
+                message: 'Conta criada e login realizado com sucesso!',
+                visible: true
+              }
+            });
+            console.log('🔥 [REGISTER] Auto-login successful with manual login');
+            return true;
+          } else {
+            // Registration succeeded but auto-login failed
+            dispatch({
+              type: 'SET_MESSAGE',
+              payload: {
+                type: 'success',
+                message: 'Conta criada com sucesso! Faça login para continuar.',
+                visible: true
+              }
+            });
+            console.log('🔥 [REGISTER] Registration successful but auto-login failed');
+            return true; // Still return true because registration succeeded
+          }
         }
       } else {
         dispatch({
