@@ -1,3 +1,4 @@
+// biome-ignore assist/source/organizeImports: explanation
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -7,22 +8,24 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme } from '../contexts/ThemeContext';
 import { useChatContext } from '../contexts/ChatContext';
 import { MessageBubble } from '../components/chat/MessageBubble';
 import { MessageInput } from '../components/chat/MessageInput';
-import { ChatMessage } from '../types';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import type { ChatMessage } from '../types';
+import type { RootStackParamList } from '../navigation/AppNavigator';
+import { ProfilePhoto } from '../components/profilePhoto';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export function ChatScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute();
   const { theme } = useTheme();
   const {
     currentChat,
@@ -30,10 +33,51 @@ export function ChatScreen() {
     loading,
     error,
     loadMessages,
-    clearMessages
+    clearMessages,
+    setCurrentChat,
   } = useChatContext();
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const flatListRef = useRef<FlatList>(null);
+
+  // Get route parameters
+  const params = route.params as
+    | { chatId: string; chatName: string; userId: string }
+    | undefined;
+
+  // Create chat from route parameters
+  useEffect(() => {
+    if (params && (!currentChat || currentChat.id !== params.chatId)) {
+      console.log('🔥 [ChatScreen] Creating chat from params:', params);
+      console.log('🔥 [ChatScreen] Current chat ID:', currentChat?.id);
+      const newChat = {
+        id: params.chatId,
+        chatName: params.chatName,
+        chatType: 'direct' as const,
+        participants: [
+          {
+            id: params.userId,
+            name: params.chatName,
+            isOnline: true,
+          },
+        ],
+        lastActivity: new Date().toISOString(),
+        unreadCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      console.log('🔥 [ChatScreen] Setting current chat:', newChat);
+      setCurrentChat(newChat);
+    } else {
+      console.log(
+        '🔥 [ChatScreen] Skipping chat creation - params:',
+        !!params,
+        'currentChat:',
+        !!currentChat,
+        'sameId:',
+        currentChat?.id === params?.chatId,
+      );
+    }
+  }, [params, currentChat, setCurrentChat]);
 
   useEffect(() => {
     if (!currentChat) {
@@ -44,7 +88,7 @@ export function ChatScreen() {
     return () => {
       clearMessages();
     };
-  }, [currentChat]);
+  }, [currentChat, navigation, clearMessages]);
 
   useEffect(() => {
     // Auto scroll to bottom when new messages arrive
@@ -68,38 +112,47 @@ export function ChatScreen() {
   };
 
   const handleMessageLongPress = (message: ChatMessage) => {
-    Alert.alert(
-      'Opções da mensagem',
-      message.text,
-      [
-        { text: 'Responder', onPress: () => handleReply(message) },
-        { text: 'Copiar', onPress: () => console.log('Copy message') },
-        { text: 'Cancelar', style: 'cancel' },
-      ]
-    );
+    Alert.alert('Opções da mensagem', message.text, [
+      { text: 'Responder', onPress: () => handleReply(message) },
+      { text: 'Copiar', onPress: () => console.log('Copy message') },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
   };
 
   const handleChatInfo = () => {
     const participant = currentChat?.participants[0];
-    const displayName = currentChat?.chatName || participant?.name || 'Usuário Desconhecido';
+    const displayName =
+      currentChat?.chatName || participant?.name || 'Usuário Desconhecido';
 
     Alert.alert(
       'Informações do Chat',
-      `Nome: ${displayName}\nTipo: ${currentChat?.chatType === 'direct' ? 'Conversa Direta' : 'Grupo'}\nStatus: ${participant?.isOnline ? 'Online' : 'Offline'}`,
-      [{ text: 'OK' }]
+      `Nome: ${displayName}\nTipo: ${
+        currentChat?.chatType === 'direct' ? 'Conversa Direta' : 'Grupo'
+      }\nStatus: ${participant?.isOnline ? 'Online' : 'Offline'}`,
+      [{ text: 'OK' }],
     );
   };
 
-  const renderMessage = ({ item, index }: { item: ChatMessage; index: number }) => {
+  const renderMessage = ({
+    item,
+    index,
+  }: {
+    item: ChatMessage;
+    index: number;
+  }) => {
     const previousMessage = index > 0 ? messages[index - 1] : null;
-    const showDateSeparator = !previousMessage ||
-      new Date(item.timestamp).toDateString() !== new Date(previousMessage.timestamp).toDateString();
+    const showDateSeparator =
+      !previousMessage ||
+      new Date(item.timestamp).toDateString() !==
+        new Date(previousMessage.timestamp).toDateString();
 
     return (
       <View>
         {showDateSeparator && (
           <View style={styles.dateSeparator}>
-            <Text style={[styles.dateText, { color: theme.colors.textSecondary }]}>
+            <Text
+              style={[styles.dateText, { color: theme.colors.textSecondary }]}
+            >
               {new Date(item.timestamp).toLocaleDateString('pt-BR', {
                 weekday: 'long',
                 year: 'numeric',
@@ -126,7 +179,9 @@ export function ChatScreen() {
       <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
         Ainda não há mensagens nesta conversa
       </Text>
-      <Text style={[styles.emptySubText, { color: theme.colors.textSecondary }]}>
+      <Text
+        style={[styles.emptySubText, { color: theme.colors.textSecondary }]}
+      >
         Envie uma mensagem para iniciar a conversa
       </Text>
     </View>
@@ -134,18 +189,26 @@ export function ChatScreen() {
 
   if (!currentChat) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      >
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: theme.colors.error || '#FF3B30' }]}>
+          <Text
+            style={[
+              styles.errorText,
+              { color: theme.colors.error || '#FF3B30' },
+            ]}
+          >
             Chat não encontrado
           </Text>
           <TouchableOpacity
-            style={[styles.retryButton, { backgroundColor: theme.colors.primary || '#007AFF' }]}
+            style={[
+              styles.retryButton,
+              { backgroundColor: theme.colors.primary || '#007AFF' },
+            ]}
             onPress={handleBackPress}
           >
-            <Text style={styles.retryButtonText}>
-              Voltar
-            </Text>
+            <Text style={styles.retryButtonText}>Voltar</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -153,44 +216,75 @@ export function ChatScreen() {
   }
 
   const participant = currentChat.participants[0];
-  const displayName = currentChat.chatName || participant?.name || 'Usuário Desconhecido';
+  const displayName =
+    currentChat.chatName || participant?.name || 'Usuário Desconhecido';
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <StatusBar
         backgroundColor={theme.colors.background}
         barStyle={theme.isDark ? 'light-content' : 'dark-content'}
       />
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.border }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: theme.colors.background,
+            borderBottomColor: theme.colors.border,
+          },
+        ]}
+      >
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Text style={[styles.backIcon, { color: theme.colors.primary || '#007AFF' }]}>
+          <Text
+            style={[
+              styles.backIcon,
+              { color: theme.colors.primary || '#007AFF' },
+            ]}
+          >
             ←
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.chatInfo} onPress={handleChatInfo}>
           <View style={styles.headerContent}>
-            <View style={[styles.headerAvatar, { backgroundColor: theme.colors.primary || '#007AFF' }]}>
-              <Text style={styles.headerAvatarText}>
-                {displayName.charAt(0).toUpperCase()}
-              </Text>
-            </View>
+            <ProfilePhoto
+              imageBase64={participant?.profilePhoto || participant?.avatar}
+              userName={displayName}
+              size={32}
+            />
             <View style={styles.headerText}>
-              <Text style={[styles.headerName, { color: theme.colors.text }]} numberOfLines={1}>
+              <Text
+                style={[styles.headerName, { color: theme.colors.text }]}
+                numberOfLines={1}
+              >
                 {displayName}
               </Text>
-              <Text style={[styles.headerStatus, { color: theme.colors.textSecondary }]}>
-                {participant?.isOnline ? 'Online' :
-                 participant?.lastSeen ? `Visto por último ${new Date(participant.lastSeen).toLocaleString('pt-BR')}` : 'Offline'}
+              <Text
+                style={[
+                  styles.headerStatus,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
+                {participant?.isOnline
+                  ? 'Online'
+                  : participant?.lastSeen
+                  ? `Visto por último ${new Date(
+                      participant.lastSeen,
+                    ).toLocaleString('pt-BR')}`
+                  : 'Offline'}
               </Text>
             </View>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.moreButton} onPress={handleChatInfo}>
-          <Text style={[styles.moreIcon, { color: theme.colors.textSecondary }]}>
+          <Text
+            style={[styles.moreIcon, { color: theme.colors.textSecondary }]}
+          >
             ⋯
           </Text>
         </TouchableOpacity>
@@ -207,16 +301,22 @@ export function ChatScreen() {
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
-            <Text style={[styles.errorText, { color: theme.colors.error || '#FF3B30' }]}>
+            <Text
+              style={[
+                styles.errorText,
+                { color: theme.colors.error || '#FF3B30' },
+              ]}
+            >
               {error}
             </Text>
             <TouchableOpacity
-              style={[styles.retryButton, { backgroundColor: theme.colors.primary || '#007AFF' }]}
+              style={[
+                styles.retryButton,
+                { backgroundColor: theme.colors.primary || '#007AFF' },
+              ]}
               onPress={() => currentChat && loadMessages(currentChat.id)}
             >
-              <Text style={styles.retryButtonText}>
-                Tentar Novamente
-              </Text>
+              <Text style={styles.retryButtonText}>Tentar Novamente</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -224,20 +324,23 @@ export function ChatScreen() {
             ref={flatListRef}
             data={messages}
             renderItem={renderMessage}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={messages.length === 0 ? styles.emptyContainer : styles.messagesContent}
+            keyExtractor={item => item.id}
+            contentContainerStyle={
+              messages.length === 0
+                ? styles.emptyContainer
+                : styles.messagesContent
+            }
             ListEmptyComponent={renderEmptyState}
             showsVerticalScrollIndicator={false}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            onContentSizeChange={() =>
+              flatListRef.current?.scrollToEnd({ animated: true })
+            }
           />
         )}
       </View>
 
       {/* Message Input */}
-      <MessageInput
-        replyingTo={replyingTo}
-        onCancelReply={handleCancelReply}
-      />
+      <MessageInput replyingTo={replyingTo} onCancelReply={handleCancelReply} />
     </SafeAreaView>
   );
 }
@@ -267,19 +370,6 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  headerAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  headerAvatarText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   headerText: {
     flex: 1,

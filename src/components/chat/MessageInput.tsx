@@ -49,16 +49,12 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
   };
 
   const handleAttachment = () => {
-    Alert.alert(
-      'Anexar arquivo',
-      'Escolha uma opção',
-      [
-        { text: 'Câmera', onPress: () => console.log('Camera') },
-        { text: 'Galeria', onPress: () => console.log('Gallery') },
-        { text: 'Documento', onPress: () => console.log('Document') },
-        { text: 'Cancelar', style: 'cancel' },
-      ]
-    );
+    Alert.alert('Anexar arquivo', 'Escolha uma opção', [
+      { text: 'Câmera', onPress: () => console.log('Camera') },
+      { text: 'Galeria', onPress: () => console.log('Gallery') },
+      { text: 'Documento', onPress: () => console.log('Document') },
+      { text: 'Cancelar', style: 'cancel' },
+    ]);
   };
 
   const canSend = message.trim().length > 0 && !isSending;
@@ -68,15 +64,39 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <View style={[styles.container, { backgroundColor: theme.colors.background, borderTopColor: theme.colors.border }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: theme.colors.background,
+            borderTopColor: theme.colors.border,
+          },
+        ]}
+      >
         {replyingTo && (
-          <View style={[styles.replyContainer, { backgroundColor: theme.colors.surface, borderLeftColor: theme.colors.primary || '#007AFF' }]}>
+          <View
+            style={[
+              styles.replyContainer,
+              {
+                backgroundColor: theme.colors.surface,
+                borderLeftColor: theme.colors.primary || '#007AFF',
+              },
+            ]}
+          >
             <View style={styles.replyContent}>
-              <Text style={[styles.replyTitle, { color: theme.colors.primary || '#007AFF' }]}>
+              <Text
+                style={[
+                  styles.replyTitle,
+                  { color: theme.colors.primary || '#007AFF' },
+                ]}
+              >
                 Respondendo
               </Text>
               <Text
-                style={[styles.replyText, { color: theme.colors.textSecondary }]}
+                style={[
+                  styles.replyText,
+                  { color: theme.colors.textSecondary },
+                ]}
                 numberOfLines={2}
               >
                 {replyingTo.text}
@@ -86,7 +106,12 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
               style={styles.cancelReplyButton}
               onPress={onCancelReply}
             >
-              <Text style={[styles.cancelReplyText, { color: theme.colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.cancelReplyText,
+                  { color: theme.colors.textSecondary },
+                ]}
+              >
                 ✕
               </Text>
             </TouchableOpacity>
@@ -95,15 +120,28 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
 
         <View style={styles.inputContainer}>
           <TouchableOpacity
-            style={[styles.attachButton, { backgroundColor: theme.colors.surface }]}
+            style={[
+              styles.attachButton,
+              { backgroundColor: theme.colors.surface },
+            ]}
             onPress={handleAttachment}
           >
-            <Text style={[styles.attachIcon, { color: theme.colors.textSecondary }]}>
+            <Text
+              style={[styles.attachIcon, { color: theme.colors.textSecondary }]}
+            >
               📎
             </Text>
           </TouchableOpacity>
 
-          <View style={[styles.textInputContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <View
+            style={[
+              styles.textInputContainer,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+              },
+            ]}
+          >
             <TextInput
               ref={textInputRef}
               style={[styles.textInput, { color: theme.colors.text }]}
@@ -132,19 +170,15 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
             onPress={handleSend}
             disabled={!canSend}
           >
-            <Text style={[
-              styles.sendIcon,
-              { color: canSend ? '#FFFFFF' : theme.colors.textSecondary }
-            ]}>
+            <Text
+              style={[
+                styles.sendIcon,
+                { color: canSend ? '#FFFFFF' : theme.colors.textSecondary },
+              ]}
+            >
               {isSending ? '⏳' : '➤'}
             </Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.actionsContainer}>
-          <Text style={[styles.characterCount, { color: theme.colors.textSecondary }]}>
-            {message.length}/1000
-          </Text>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -155,8 +189,8 @@ const styles = StyleSheet.create({
   container: {
     borderTopWidth: 1,
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 8 : 16,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? -26 : -18,
   },
   replyContainer: {
     flexDirection: 'row',
@@ -209,13 +243,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    maxHeight: 100,
+    maxHeight: 90,
   },
   textInput: {
     fontSize: 16,
     lineHeight: 20,
-    minHeight: 20,
-    maxHeight: 80,
+    minHeight: 10,
+    maxHeight: 70,
     textAlignVertical: 'top',
   },
   sendButton: {
@@ -229,13 +263,5 @@ const styles = StyleSheet.create({
   sendIcon: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 4,
-  },
-  characterCount: {
-    fontSize: 11,
   },
 });

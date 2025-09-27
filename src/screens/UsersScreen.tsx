@@ -11,6 +11,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { MainLayout } from '../components/MainLayout';
+import { ProfilePhoto } from '../components/profilePhoto';
 
 interface User {
   id: string;
@@ -20,6 +21,7 @@ interface User {
     name: string;
   };
   isActive: boolean;
+  profilePhoto?: string;
   createdAt: string;
 }
 
@@ -131,11 +133,11 @@ export function UsersScreen() {
               onPress={() => handleUserPress(user)}
             >
               <View style={styles.userInfo}>
-                <View style={styles.userAvatar}>
-                  <Text style={styles.userInitial}>
-                    {user.name.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
+                <ProfilePhoto
+                  imageBase64={user.profilePhoto}
+                  userName={user.name}
+                  size={48}
+                />
                 <View style={styles.userDetails}>
                   <Text style={[styles.userName, { color: theme.colors.text }]}>
                     {user.name}
@@ -217,20 +219,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#6366F1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  userInitial: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   userDetails: {
     flex: 1,

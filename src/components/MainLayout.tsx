@@ -2,11 +2,11 @@ import React, { useState, ReactNode } from 'react';
 import {
   View,
   StyleSheet,
-  SafeAreaView,
   Modal,
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { TopBar } from './TopBar';
 import { LeftDrawer } from './LeftDrawer';

@@ -522,6 +522,30 @@ class ApiService {
     });
   }
 
+  // Update user profile with photo
+  async updateUserProfileWithPhoto(profileData: {
+    name?: string;
+    email?: string;
+    aboutUs?: string;
+    phoneNo?: string;
+    gender?: string;
+    city?: string;
+    profilePhoto?: string; // base64 string
+  }): Promise<ApiResponse> {
+    console.log('🔥 [UPDATE PROFILE] Starting profile update with photo...');
+    console.log('🔥 [UPDATE PROFILE] Profile data keys:', Object.keys(profileData));
+    console.log('🔥 [UPDATE PROFILE] Has profilePhoto:', !!profileData.profilePhoto);
+
+    if (profileData.profilePhoto) {
+      console.log('🔥 [UPDATE PROFILE] Photo size (chars):', profileData.profilePhoto.length);
+    }
+
+    return this.request(API_CONFIG.ENDPOINTS.USER.UPDATE_PROFILE, {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
   // Helper method to get stored user data
   async getStoredUserData(): Promise<any | null> {
     return await hybridStorageService.getUserData();

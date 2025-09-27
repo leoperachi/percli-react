@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  ReactNode,
+} from 'react';
 import { Chat, ChatMessage, ChatContextType, ChatUser } from '../types';
 import { useAppContext } from './AppContext';
 
@@ -51,26 +57,31 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
                 ...chat,
                 lastMessage: action.payload,
                 lastActivity: action.payload.timestamp,
-                unreadCount: action.payload.senderId !== state.currentChat?.id ? chat.unreadCount + 1 : chat.unreadCount,
+                unreadCount:
+                  action.payload.senderId !== state.currentChat?.id
+                    ? chat.unreadCount + 1
+                    : chat.unreadCount,
               }
-            : chat
+            : chat,
         ),
       };
     case 'UPDATE_CHAT':
       return {
         ...state,
         chats: state.chats.map(chat =>
-          chat.id === action.payload.id ? action.payload : chat
+          chat.id === action.payload.id ? action.payload : chat,
         ),
       };
     case 'MARK_MESSAGES_AS_READ':
       return {
         ...state,
         messages: state.messages.map(message =>
-          message.chatId === action.payload ? { ...message, isRead: true } : message
+          message.chatId === action.payload
+            ? { ...message, isRead: true }
+            : message,
         ),
         chats: state.chats.map(chat =>
-          chat.id === action.payload ? { ...chat, unreadCount: 0 } : chat
+          chat.id === action.payload ? { ...chat, unreadCount: 0 } : chat,
         ),
       };
     case 'CLEAR_MESSAGES':
@@ -263,7 +274,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   };
 
-  const sendMessage = async (text: string, receiverId: string, replyTo?: string): Promise<void> => {
+  const sendMessage = async (
+    text: string,
+    receiverId: string,
+    replyTo?: string,
+  ): Promise<void> => {
     try {
       if (!user || !state.currentChat) return;
 
@@ -284,7 +299,6 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 200));
-
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Erro ao enviar mensagem' });
     }
@@ -305,7 +319,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
     try {
       // Check if chat already exists
       const existingChat = state.chats.find(chat =>
-        chat.participants.some(p => p.id === participantId)
+        chat.participants.some(p => p.id === participantId),
       );
 
       if (existingChat) {
@@ -315,11 +329,13 @@ export function ChatProvider({ children }: ChatProviderProps) {
       // Create new chat
       const newChat: Chat = {
         id: `chat-${Date.now()}`,
-        participants: [{
-          id: participantId,
-          name: 'Novo Usuário',
-          isOnline: false
-        }],
+        participants: [
+          {
+            id: participantId,
+            name: 'Novo Usuário',
+            isOnline: false,
+          },
+        ],
         lastActivity: new Date().toISOString(),
         unreadCount: 0,
         chatType: 'direct',
@@ -343,9 +359,9 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   };
 
-  const clearMessages = () => {
+  const clearMessages = useCallback(() => {
     dispatch({ type: 'CLEAR_MESSAGES' });
-  };
+  }, []);
 
   const value: ChatContextType = {
     chats: state.chats,
@@ -362,11 +378,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
     clearMessages,
   };
 
-  return (
-    <ChatContext.Provider value={value}>
-      {children}
-    </ChatContext.Provider>
-  );
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }
 
 export function useChatContext(): ChatContextType {

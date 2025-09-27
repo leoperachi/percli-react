@@ -563,6 +563,14 @@ export function AppProvider({ children }: AppProviderProps) {
     }
   };
 
+  // Update user data in context
+  const updateUser = (userData: Partial<User>) => {
+    if (state.user) {
+      const updatedUser = { ...state.user, ...userData };
+      dispatch({ type: 'SET_USER', payload: updatedUser });
+    }
+  };
+
   const value: AppContextType = {
     user: state.user,
     loading: state.loading,
@@ -572,6 +580,7 @@ export function AppProvider({ children }: AppProviderProps) {
     changePassword,
     forgotPassword,
     logout,
+    updateUser,
     setLoading,
     showMessage,
     hideMessage,

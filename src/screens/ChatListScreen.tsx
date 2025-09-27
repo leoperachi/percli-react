@@ -16,6 +16,7 @@ import { MainLayout } from '../components/MainLayout';
 import { useChatContext } from '../contexts/ChatContext';
 import { Chat } from '../types';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { ProfilePhoto } from '../components/profilePhoto';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -58,11 +59,11 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
       activeOpacity={0.7}
     >
       <View style={styles.avatarContainer}>
-        <View style={[styles.avatar, { backgroundColor: theme.colors.primary || '#007AFF' }]}>
-          <Text style={styles.avatarText}>
-            {displayName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
+        <ProfilePhoto
+          imageBase64={participant?.profilePhoto || participant?.avatar}
+          userName={displayName}
+          size={48}
+        />
         {participant?.isOnline && (
           <View style={[styles.onlineIndicator, { borderColor: theme.colors.surface }]} />
         )}
@@ -301,18 +302,6 @@ const styles = StyleSheet.create({
   avatarContainer: {
     position: 'relative',
     marginRight: 12,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   onlineIndicator: {
     position: 'absolute',

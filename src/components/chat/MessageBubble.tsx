@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ChatMessage } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppContext } from '../../contexts/AppContext';
@@ -15,9 +10,18 @@ interface MessageBubbleProps {
   onLongPress?: (message: ChatMessage) => void;
 }
 
-export function MessageBubble({ message, onReply, onLongPress }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  onReply,
+  onLongPress,
+}: MessageBubbleProps) {
   const { theme } = useTheme();
   const { user } = useAppContext();
+
+  // Determine if we're in dark mode
+  const isDarkMode =
+    theme.colors.background === '#000000' ||
+    theme.colors.background === '#1a1a1a';
 
   const isOwnMessage = message.senderId === user?.id;
   const formatTime = (timestamp: string) => {
@@ -41,38 +45,59 @@ export function MessageBubble({ message, onReply, onLongPress }: MessageBubblePr
   };
 
   return (
-    <View style={[
-      styles.container,
-      isOwnMessage ? styles.ownMessageContainer : styles.otherMessageContainer
-    ]}>
+    <View
+      style={[
+        styles.container,
+        isOwnMessage
+          ? styles.ownMessageContainer
+          : styles.otherMessageContainer,
+      ]}
+    >
       <TouchableOpacity
         style={[
           styles.bubble,
-          isOwnMessage ? [
-            styles.ownBubble,
-            { backgroundColor: theme.colors.primary || '#007AFF' }
-          ] : [
-            styles.otherBubble,
-            { backgroundColor: theme.colors.surface }
-          ]
+          isOwnMessage
+            ? [
+                styles.ownBubble,
+                { backgroundColor: theme.colors.primary || '#007AFF' },
+              ]
+            : [styles.otherBubble, { backgroundColor: theme.colors.surface }],
         ]}
         onPress={handlePress}
         onLongPress={handleLongPress}
         activeOpacity={0.8}
       >
         {message.replyTo && (
-          <View style={[
-            styles.replyContainer,
-            { backgroundColor: isOwnMessage ? 'rgba(255,255,255,0.2)' : theme.colors.border }
-          ]}>
-            <View style={[
-              styles.replyIndicator,
-              { backgroundColor: isOwnMessage ? '#FFFFFF' : theme.colors.primary || '#007AFF' }
-            ]} />
+          <View
+            style={[
+              styles.replyContainer,
+              {
+                backgroundColor: isOwnMessage
+                  ? 'rgba(255,255,255,0.2)'
+                  : theme.colors.border,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.replyIndicator,
+                {
+                  backgroundColor: isOwnMessage
+                    ? '#FFFFFF'
+                    : theme.colors.primary || '#007AFF',
+                },
+              ]}
+            />
             <Text
               style={[
                 styles.replyText,
-                { color: isOwnMessage ? '#FFFFFF' : theme.colors.textSecondary }
+                {
+                  color: isOwnMessage
+                    ? '#FFFFFF'
+                    : isDarkMode
+                    ? '#666666'
+                    : '#CCCCCC',
+                },
               ]}
               numberOfLines={2}
             >
@@ -81,27 +106,47 @@ export function MessageBubble({ message, onReply, onLongPress }: MessageBubblePr
           </View>
         )}
 
-        <Text style={[
-          styles.messageText,
-          { color: isOwnMessage ? '#FFFFFF' : theme.colors.text }
-        ]}>
+        <Text
+          style={[
+            styles.messageText,
+            {
+              color: isOwnMessage
+                ? '#FFFFFF'
+                : isDarkMode
+                ? '#000000'
+                : '#FFFFFF',
+            },
+          ]}
+        >
           {message.text}
         </Text>
 
         <View style={styles.messageInfo}>
-          <Text style={[
-            styles.timeText,
-            { color: isOwnMessage ? 'rgba(255,255,255,0.7)' : theme.colors.textSecondary }
-          ]}>
+          <Text
+            style={[
+              styles.timeText,
+              {
+                color: isOwnMessage
+                  ? 'rgba(255,255,255,0.7)'
+                  : isDarkMode
+                  ? '#666666'
+                  : '#CCCCCC',
+              },
+            ]}
+          >
             {formatTime(message.timestamp)}
           </Text>
 
           {isOwnMessage && (
             <View style={styles.statusContainer}>
-              <Text style={[
-                styles.statusIcon,
-                { color: message.isRead ? '#34C759' : 'rgba(255,255,255,0.7)' }
-              ]}>
+              <Text
+                style={[
+                  styles.statusIcon,
+                  {
+                    color: message.isRead ? '#34C759' : 'rgba(255,255,255,0.7)',
+                  },
+                ]}
+              >
                 {message.isRead ? '✓✓' : '✓'}
               </Text>
             </View>

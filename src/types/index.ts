@@ -6,6 +6,7 @@ export interface Menu {
   action: string;
   uplevel: number;
   isActive: boolean;
+  icon?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +39,7 @@ export interface User {
   role: Role;
   isActive: boolean;
   emailVerified?: boolean;
+  profilePhoto?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -110,6 +112,7 @@ export interface AppContextType {
   ) => Promise<boolean>;
   forgotPassword: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
   setLoading: (loading: LoadingState) => void;
   showMessage: (type: MessageState['type'], message: string) => void;
   hideMessage: () => void;
@@ -121,6 +124,7 @@ export interface ChatUser {
   id: string;
   name: string;
   avatar?: string;
+  profilePhoto?: string;
   isOnline: boolean;
   lastSeen?: string;
 }

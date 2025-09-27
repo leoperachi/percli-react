@@ -27,7 +27,11 @@ export type RootStackParamList = {
   Roles: undefined;
   Authorizations: undefined;
   ChatList: undefined;
-  Chat: undefined;
+  Chat: {
+    chatId: string;
+    chatName: string;
+    userId: string;
+  };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -48,10 +52,16 @@ export function AppNavigator() {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-            <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+            <Stack.Screen
+              name="ChangePassword"
+              component={ChangePasswordScreen}
+            />
             <Stack.Screen name="Users" component={UsersScreen} />
             <Stack.Screen name="Roles" component={RolesScreen} />
-            <Stack.Screen name="Authorizations" component={AuthorizationsScreen} />
+            <Stack.Screen
+              name="Authorizations"
+              component={AuthorizationsScreen}
+            />
             <Stack.Screen name="ChatList" component={ChatListScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
           </>
@@ -59,7 +69,10 @@ export function AppNavigator() {
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+            />
           </>
         )}
       </Stack.Navigator>

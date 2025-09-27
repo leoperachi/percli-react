@@ -4,17 +4,18 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Switch,
   Animated,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { Authorization, AuthorizationResource, Menu } from '../types';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { ProfilePhoto } from './profilePhoto';
 
 interface LeftDrawerProps {
   onClose: () => void;
@@ -36,11 +37,6 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
   const handleProfilePress = () => {
     onClose();
     navigation.navigate('EditProfile' as never);
-  };
-
-  const handleChatPress = () => {
-    onClose();
-    navigation.navigate('ChatList' as never);
   };
 
   const toggleAuthorization = (authId: string) => {
@@ -65,13 +61,34 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
 
   // Remove renderMenuItem since we won't render the individual menus
 
-  const getScreenNameFromResource = (resource: string): keyof RootStackParamList | null => {
+  const getScreenNameFromResource = (
+    resource: string,
+  ): keyof RootStackParamList | null => {
     const resourceScreenMap: { [key: string]: keyof RootStackParamList } = {
       users: 'Users',
       roles: 'Roles',
       authorizations: 'Authorizations',
     };
     return resourceScreenMap[resource.toLowerCase()] || null;
+  };
+
+  const getResourceIcon = (resource: AuthorizationResource): string => {
+    // Check if any menu in this resource has an icon
+    const menuWithIcon = resource.menus.find(menu => menu.icon);
+    if (menuWithIcon?.icon) {
+      return menuWithIcon.icon;
+    }
+
+    // Fallback to default icons based on resource name
+    const defaultIcons: { [key: string]: string } = {
+      users: '👥',
+      roles: '🔑',
+      authorizations: '🛡️',
+      settings: '⚙️',
+      reports: '📊',
+      dashboard: '📈',
+    };
+    return defaultIcons[resource.resource.toLowerCase()] || '📋';
   };
 
   const handleResourcePress = (resource: AuthorizationResource) => {
@@ -100,12 +117,18 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
           onPress={() => handleResourcePress(resource)}
           disabled={!canNavigate}
         >
+          <Text style={styles.menuIcon}>{getResourceIcon(resource)}</Text>
           <Text style={[styles.resourceText, { color: theme.colors.text }]}>
             {resource.resource.charAt(0).toUpperCase() +
               resource.resource.slice(1)}
           </Text>
           {canNavigate && (
-            <Text style={[styles.navigationIcon, { color: theme.colors.textSecondary }]}>
+            <Text
+              style={[
+                styles.navigationIcon,
+                { color: theme.colors.textSecondary },
+              ]}
+            >
               →
             </Text>
           )}
@@ -191,11 +214,12 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
           ]}
           onPress={handleProfilePress}
         >
-          <View style={styles.userAvatar}>
-            <Text style={styles.userInitial}>
-              {user?.name?.charAt(0)?.toUpperCase() || 'A'}
-            </Text>
-          </View>
+          <ProfilePhoto
+            imageBase64={user?.profilePhoto}
+            userName={user?.name || 'Administrador'}
+            size={40}
+            style={{ marginRight: 12 }}
+          />
           <View style={styles.userInfo}>
             <Text style={[styles.userName, { color: theme.colors.text }]}>
               {user?.name || 'Administrador'}
@@ -215,27 +239,16 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
             showsVerticalScrollIndicator={true}
             contentContainerStyle={{ paddingBottom: 10 }}
           >
-            {/* Chat Section */}
-            <View style={styles.menuItemsSection}>
-              <TouchableOpacity
-                style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
-                onPress={handleChatPress}
-              >
-                <Text style={styles.menuIcon}>💬</Text>
-                <Text style={[styles.menuText, { color: theme.colors.text }]}>
-                  Conversas
-                </Text>
-                <Text style={[styles.navigationIcon, { color: theme.colors.textSecondary }]}>
-                  →
-                </Text>
-              </TouchableOpacity>
-            </View>
-
             {/* Authorizations Section */}
             {user?.role?.authorizations &&
               user.role.authorizations.length > 0 && (
                 <View style={styles.authorizationsSection}>
-                  <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.sectionTitle,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
                     Autorizações
                   </Text>
                   {user.role.authorizations.map(auth =>
@@ -335,20 +348,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginBottom: 12,
     flexShrink: 0, // Não encolhe
-  },
-  userAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#6366F1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  userInitial: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   userInfo: {
     flex: 1,
