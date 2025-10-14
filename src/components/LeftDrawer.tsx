@@ -13,9 +13,10 @@ import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import { Authorization, AuthorizationResource, Menu } from '../types';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import type { Authorization, AuthorizationResource } from '../types';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 import { ProfilePhoto } from './profilePhoto';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 interface LeftDrawerProps {
   onClose: () => void;
@@ -79,16 +80,18 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
       return menuWithIcon.icon;
     }
 
-    // Fallback to default icons based on resource name
+    // Fallback to default MaterialIcons based on resource name
     const defaultIcons: { [key: string]: string } = {
-      users: '👥',
-      roles: '🔑',
-      authorizations: '🛡️',
-      settings: '⚙️',
-      reports: '📊',
-      dashboard: '📈',
+      users: 'people',
+      roles: 'vpn-key',
+      authorizations: 'shield',
+      settings: 'settings',
+      reports: 'assessment',
+      dashboard: 'dashboard',
+      chat: 'chat',
+      notifications: 'notifications',
     };
-    return defaultIcons[resource.resource.toLowerCase()] || '📋';
+    return defaultIcons[resource.resource.toLowerCase()] || 'menu';
   };
 
   const handleResourcePress = (resource: AuthorizationResource) => {
@@ -117,20 +120,22 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
           onPress={() => handleResourcePress(resource)}
           disabled={!canNavigate}
         >
-          <Text style={styles.menuIcon}>{getResourceIcon(resource)}</Text>
+          <Icon
+            name={getResourceIcon(resource)}
+            size={20}
+            color={theme.colors.text}
+            style={styles.menuIconMaterial}
+          />
           <Text style={[styles.resourceText, { color: theme.colors.text }]}>
             {resource.resource.charAt(0).toUpperCase() +
               resource.resource.slice(1)}
           </Text>
           {canNavigate && (
-            <Text
-              style={[
-                styles.navigationIcon,
-                { color: theme.colors.textSecondary },
-              ]}
-            >
-              →
-            </Text>
+            <Icon
+              name="chevron-right"
+              size={20}
+              color={theme.colors.textSecondary}
+            />
           )}
         </TouchableOpacity>
       </View>
@@ -243,14 +248,6 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
             {user?.role?.authorizations &&
               user.role.authorizations.length > 0 && (
                 <View style={styles.authorizationsSection}>
-                  <Text
-                    style={[
-                      styles.sectionTitle,
-                      { color: theme.colors.textSecondary },
-                    ]}
-                  >
-                    Autorizações
-                  </Text>
                   {user.role.authorizations.map(auth =>
                     renderAuthorizationItem(auth),
                   )}
@@ -380,6 +377,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
     width: 22,
     textAlign: 'center',
+  },
+  menuIconMaterial: {
+    marginRight: 12,
+    width: 22,
   },
   menuText: {
     fontSize: 15,
