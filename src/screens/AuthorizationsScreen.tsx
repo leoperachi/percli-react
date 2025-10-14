@@ -225,7 +225,7 @@ export function AuthorizationsScreen() {
     } catch (error) {
       console.error('Error loading authorizations:', error);
       setLoading(false);
-      Alert.alert('Erro', 'Não foi possível carregar as autorizações');
+      Alert.alert('Error', 'Failed to load authorizations');
     }
   };
 
@@ -240,12 +240,12 @@ export function AuthorizationsScreen() {
   const handleMenuPress = (menu: Menu) => {
     Alert.alert(
       'Menu Permission',
-      `Nome: ${menu.name}\nDescrição: ${menu.description}\nRecurso: ${menu.resource}\nAção: ${menu.action}\nStatus: ${menu.isActive ? 'Ativo' : 'Inativo'}`
+      `Name: ${menu.name}\nDescription: ${menu.description}\nResource: ${menu.resource}\nAction: ${menu.action}\nStatus: ${menu.isActive ? 'Active' : 'Inactive'}`
     );
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -265,11 +265,11 @@ export function AuthorizationsScreen() {
 
   if (loading) {
     return (
-      <MainLayout title="Autorizações" leftIcon="back" onLeftPress={handleBackPress}>
+      <MainLayout title="Authorizations" leftIcon="back" onLeftPress={handleBackPress}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-            Carregando autorizações...
+            Loading authorizations...
           </Text>
         </View>
       </MainLayout>
@@ -277,14 +277,14 @@ export function AuthorizationsScreen() {
   }
 
   return (
-    <MainLayout title="Autorizações" leftIcon="back" onLeftPress={handleBackPress}>
+    <MainLayout title="Authorizations" leftIcon="back" onLeftPress={handleBackPress}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>
-            Gerenciar Autorizações
+            Manage Authorizations
           </Text>
           <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            {authorizations.length} grupo{authorizations.length !== 1 ? 's' : ''} de autorização
+            {authorizations.length} authorization group{authorizations.length !== 1 ? 's' : ''}
           </Text>
         </View>
 

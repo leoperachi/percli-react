@@ -26,6 +26,16 @@ export const API_CONFIG = {
       DELETE_ACCOUNT: '/user/delete',
     },
 
+    // Users management endpoints
+    USERS: {
+      LIST: '/users/',
+    },
+
+    // Roles management endpoints
+    ROLES: {
+      LIST: '/roles/',
+    },
+
     // Add more endpoints as needed
     // PRODUCTS: {
     //   LIST: '/api/products',

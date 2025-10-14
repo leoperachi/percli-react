@@ -556,6 +556,27 @@ class ApiService {
     return await hybridStorageService.isAuthenticated();
   }
 
+  // Get list of all users
+  async getUsersList(): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.USERS.LIST, {
+      method: 'GET',
+    });
+  }
+
+  // Get list of all roles
+  async getRolesList(): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.ROLES.LIST, {
+      method: 'GET',
+    });
+  }
+
+  // Get role details by ID
+  async getRoleDetails(roleId: number): Promise<ApiResponse> {
+    return this.request(`${API_CONFIG.ENDPOINTS.ROLES.LIST}${roleId}`, {
+      method: 'GET',
+    });
+  }
+
   // Google Authentication - Authorization Code Flow
   async googleAuth(authorizationCode: string): Promise<ApiResponse<AuthResponse>> {
     try {

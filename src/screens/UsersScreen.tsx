@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { MainLayout } from '../components/MainLayout';
 import { ProfilePhoto } from '../components/profilePhoto';
+import apiService from '../services/apiService';
 
 interface User {
   id: string;
@@ -21,7 +22,7 @@ interface User {
     name: string;
   };
   isActive: boolean;
-  profilePhoto?: string;
+  profilePicture?: string;
   createdAt: string;
 }
 
@@ -31,52 +32,28 @@ export function UsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
   const loadUsers = async () => {
     try {
       setLoading(true);
-      // Simulated data - replace with actual API call
-      const mockUsers: User[] = [
-        {
-          id: '1',
-          name: 'Administrador',
-          email: 'admin@percli.com',
-          role: { name: 'admin' },
-          isActive: true,
-          createdAt: '2025-09-23T21:29:40.020Z',
-        },
-        {
-          id: '2',
-          name: 'João Silva',
-          email: 'joao@example.com',
-          role: { name: 'user' },
-          isActive: true,
-          createdAt: '2025-09-24T10:15:30.020Z',
-        },
-        {
-          id: '3',
-          name: 'Maria Santos',
-          email: 'maria@example.com',
-          role: { name: 'user' },
-          isActive: false,
-          createdAt: '2025-09-22T14:30:15.020Z',
-        },
-      ];
 
-      // Simulate API delay
-      setTimeout(() => {
-        setUsers(mockUsers);
-        setLoading(false);
-      }, 1000);
+      const response = await apiService.getUsersList();
+
+      if (response.success && response.data) {
+        setUsers(response.data);
+      } else {
+        Alert.alert('Error', response.error || 'Failed to load users');
+      }
     } catch (error) {
       console.error('Error loading users:', error);
+      Alert.alert('Error', 'Failed to load users');
+    } finally {
       setLoading(false);
-      Alert.alert('Erro', 'Não foi possível carregar os usuários');
     }
   };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -84,13 +61,15 @@ export function UsersScreen() {
 
   const handleUserPress = (user: User) => {
     Alert.alert(
-      'Usuário',
-      `Nome: ${user.name}\nEmail: ${user.email}\nRole: ${user.role.name}\nStatus: ${user.isActive ? 'Ativo' : 'Inativo'}`
+      'User',
+      `Name: ${user.name}\nEmail: ${user.email}\nRole: ${
+        user.role.name
+      }\nStatus: ${user.isActive ? 'Active' : 'Inactive'}`,
     );
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -99,11 +78,11 @@ export function UsersScreen() {
 
   if (loading) {
     return (
-      <MainLayout title="Usuários" leftIcon="back" onLeftPress={handleBackPress}>
+      <MainLayout title="Users" leftIcon="back" onLeftPress={handleBackPress}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-            Carregando usuários...
+            Loading users...
           </Text>
         </View>
       </MainLayout>
@@ -111,30 +90,35 @@ export function UsersScreen() {
   }
 
   return (
-    <MainLayout title="Usuários" leftIcon="back" onLeftPress={handleBackPress}>
+    <MainLayout title="Users" leftIcon="back" onLeftPress={handleBackPress}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>
-            Gerenciar Usuários
+            Manage Users
           </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            {users.length} usuário{users.length !== 1 ? 's' : ''} encontrado{users.length !== 1 ? 's' : ''}
+          <Text
+            style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+          >
+            {users.length} user{users.length !== 1 ? 's' : ''} found
           </Text>
         </View>
 
         <View style={styles.usersList}>
-          {users.map((user) => (
+          {users.map(user => (
             <TouchableOpacity
               key={user.id}
               style={[
                 styles.userCard,
-                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
               ]}
               onPress={() => handleUserPress(user)}
             >
               <View style={styles.userInfo}>
                 <ProfilePhoto
-                  imageBase64={user.profilePhoto}
+                  imageBase64={user.profilePicture}
                   userName={user.name}
                   size={48}
                 />
@@ -142,10 +126,20 @@ export function UsersScreen() {
                   <Text style={[styles.userName, { color: theme.colors.text }]}>
                     {user.name}
                   </Text>
-                  <Text style={[styles.userEmail, { color: theme.colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.userEmail,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
                     {user.email}
                   </Text>
-                  <Text style={[styles.userRole, { color: theme.colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.userRole,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
                     Role: {user.role.name}
                   </Text>
                 </View>
@@ -162,10 +156,15 @@ export function UsersScreen() {
                   ]}
                 >
                   <Text style={styles.statusText}>
-                    {user.isActive ? 'Ativo' : 'Inativo'}
+                    {user.isActive ? 'Active' : 'Inactive'}
                   </Text>
                 </View>
-                <Text style={[styles.userDate, { color: theme.colors.textSecondary }]}>
+                <Text
+                  style={[
+                    styles.userDate,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
                   {formatDate(user.createdAt)}
                 </Text>
               </View>
@@ -222,6 +221,7 @@ const styles = StyleSheet.create({
   },
   userDetails: {
     flex: 1,
+    marginLeft: 12,
   },
   userName: {
     fontSize: 16,

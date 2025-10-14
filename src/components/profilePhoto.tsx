@@ -17,7 +17,6 @@ export const ProfilePhoto: React.FC<ProfilePhotoProps> = ({
   style,
   showDefaultImage = true,
 }) => {
-
   const getInitials = (name: string): string => {
     return name
       .split(' ')

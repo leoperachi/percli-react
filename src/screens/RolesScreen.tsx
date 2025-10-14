@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,13 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme } from '../contexts/ThemeContext';
 import { MainLayout } from '../components/MainLayout';
+import apiService from '../services/apiService';
+import type { RootStackParamList } from '../navigation/AppNavigator';
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface Role {
   id: number;
@@ -19,87 +24,51 @@ interface Role {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  userCount: number;
+  usersCount: number;
 }
 
 export function RolesScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadRoles();
-  }, []);
-
-  const loadRoles = async () => {
+  const loadRoles = useCallback(async () => {
     try {
       setLoading(true);
-      // Simulated data - replace with actual API call
-      const mockRoles: Role[] = [
-        {
-          id: 1,
-          name: 'admin',
-          description: 'Administrator role with full access',
-          isActive: true,
-          createdAt: '2025-09-23T21:29:38.967Z',
-          updatedAt: '2025-09-23T21:29:38.967Z',
-          userCount: 2,
-        },
-        {
-          id: 2,
-          name: 'user',
-          description: 'Standard user role with limited access',
-          isActive: true,
-          createdAt: '2025-09-23T21:30:15.123Z',
-          updatedAt: '2025-09-24T10:15:30.456Z',
-          userCount: 15,
-        },
-        {
-          id: 3,
-          name: 'moderator',
-          description: 'Moderator role with content management permissions',
-          isActive: true,
-          createdAt: '2025-09-24T08:45:22.789Z',
-          updatedAt: '2025-09-24T08:45:22.789Z',
-          userCount: 3,
-        },
-        {
-          id: 4,
-          name: 'viewer',
-          description: 'Read-only access role',
-          isActive: false,
-          createdAt: '2025-09-22T16:20:10.111Z',
-          updatedAt: '2025-09-23T14:30:45.222Z',
-          userCount: 0,
-        },
-      ];
 
-      // Simulate API delay
-      setTimeout(() => {
-        setRoles(mockRoles);
-        setLoading(false);
-      }, 1000);
+      const response = await apiService.getRolesList();
+
+      if (response.success && response.data) {
+        setRoles(response.data);
+      } else {
+        Alert.alert('Error', response.error || 'Failed to load roles');
+      }
     } catch (error) {
       console.error('Error loading roles:', error);
+      Alert.alert('Error', 'Failed to load roles');
+    } finally {
       setLoading(false);
-      Alert.alert('Erro', 'Não foi possível carregar as roles');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadRoles();
+  }, [loadRoles]);
 
   const handleBackPress = () => {
     navigation.goBack();
   };
 
   const handleRolePress = (role: Role) => {
-    Alert.alert(
-      'Role Details',
-      `Nome: ${role.name}\nDescrição: ${role.description}\nStatus: ${role.isActive ? 'Ativo' : 'Inativo'}\nUsuários: ${role.userCount}`
-    );
+    navigation.navigate('RoleDetails', {
+      roleId: role.id,
+      roleName: role.name,
+    });
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -122,7 +91,7 @@ export function RolesScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-            Carregando roles...
+            Loading roles...
           </Text>
         </View>
       </MainLayout>
@@ -134,20 +103,25 @@ export function RolesScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>
-            Gerenciar Roles
+            Manage Roles
           </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            {roles.length} role{roles.length !== 1 ? 's' : ''} configurada{roles.length !== 1 ? 's' : ''}
+          <Text
+            style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+          >
+            {roles.length} role{roles.length !== 1 ? 's' : ''} configured
           </Text>
         </View>
 
         <View style={styles.rolesList}>
-          {roles.map((role) => (
+          {roles.map(role => (
             <TouchableOpacity
               key={role.id}
               style={[
                 styles.roleCard,
-                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                },
               ]}
               onPress={() => handleRolePress(role)}
             >
@@ -156,7 +130,7 @@ export function RolesScreen() {
                   <View
                     style={[
                       styles.roleIcon,
-                      { backgroundColor: getRoleColor(role.name) }
+                      { backgroundColor: getRoleColor(role.name) },
                     ]}
                   >
                     <Text style={styles.roleInitial}>
@@ -164,10 +138,17 @@ export function RolesScreen() {
                     </Text>
                   </View>
                   <View style={styles.roleDetails}>
-                    <Text style={[styles.roleName, { color: theme.colors.text }]}>
+                    <Text
+                      style={[styles.roleName, { color: theme.colors.text }]}
+                    >
                       {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
                     </Text>
-                    <Text style={[styles.roleDescription, { color: theme.colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.roleDescription,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
                       {role.description}
                     </Text>
                   </View>
@@ -184,19 +165,29 @@ export function RolesScreen() {
                     ]}
                   >
                     <Text style={styles.statusText}>
-                      {role.isActive ? 'Ativo' : 'Inativo'}
+                      {role.isActive ? 'Active' : 'Inactive'}
                     </Text>
                   </View>
                 </View>
               </View>
               <View style={styles.roleFooter}>
                 <View style={styles.roleStats}>
-                  <Text style={[styles.userCount, { color: theme.colors.textSecondary }]}>
-                    👥 {role.userCount} usuário{role.userCount !== 1 ? 's' : ''}
+                  <Text
+                    style={[
+                      styles.usersCount,
+                      { color: theme.colors.textSecondary },
+                    ]}
+                  >
+                    👥 {role.usersCount} user{role.usersCount !== 1 ? 's' : ''}
                   </Text>
                 </View>
-                <Text style={[styles.roleDate, { color: theme.colors.textSecondary }]}>
-                  Criado em {formatDate(role.createdAt)}
+                <Text
+                  style={[
+                    styles.roleDate,
+                    { color: theme.colors.textSecondary },
+                  ]}
+                >
+                  Created on {formatDate(role.createdAt)}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -303,7 +294,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  userCount: {
+  usersCount: {
     fontSize: 12,
     fontWeight: '500',
   },

@@ -11,6 +11,7 @@ import { EditProfileScreen } from '../screens/EditProfileScreen';
 import { ChangePasswordScreen } from '../screens/ChangePasswordScreen';
 import { UsersScreen } from '../screens/UsersScreen';
 import { RolesScreen } from '../screens/RolesScreen';
+import { RoleDetailsScreen } from '../screens/RoleDetailsScreen';
 import { AuthorizationsScreen } from '../screens/AuthorizationsScreen';
 import { ChatListScreen } from '../screens/ChatListScreen';
 import { ChatScreen } from '../screens/ChatScreen';
@@ -25,6 +26,10 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   Users: undefined;
   Roles: undefined;
+  RoleDetails: {
+    roleId: number;
+    roleName: string;
+  };
   Authorizations: undefined;
   ChatList: undefined;
   Chat: {
@@ -58,6 +63,7 @@ export function AppNavigator() {
             />
             <Stack.Screen name="Users" component={UsersScreen} />
             <Stack.Screen name="Roles" component={RolesScreen} />
+            <Stack.Screen name="RoleDetails" component={RoleDetailsScreen} />
             <Stack.Screen
               name="Authorizations"
               component={AuthorizationsScreen}
