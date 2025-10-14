@@ -29,12 +29,14 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
   const { theme } = useTheme();
 
   const participant = chat.participants[0];
-  const displayName = chat.chatName || participant?.name || 'Usuário Desconhecido';
+  const displayName =
+    chat.chatName || participant?.name || 'Usuário Desconhecido';
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
-    const diffInHours = Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInHours =
+      Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
       return date.toLocaleTimeString('pt-BR', {
@@ -53,7 +55,10 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
     <TouchableOpacity
       style={[
         styles.chatItem,
-        { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }
+        {
+          backgroundColor: theme.colors.surface,
+          borderBottomColor: theme.colors.border,
+        },
       ]}
       onPress={() => onPress(chat)}
       activeOpacity={0.7}
@@ -65,17 +70,27 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
           size={48}
         />
         {participant?.isOnline && (
-          <View style={[styles.onlineIndicator, { borderColor: theme.colors.surface }]} />
+          <View
+            style={[
+              styles.onlineIndicator,
+              { borderColor: theme.colors.surface },
+            ]}
+          />
         )}
       </View>
 
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
-          <Text style={[styles.chatName, { color: theme.colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.chatName, { color: theme.colors.text }]}
+            numberOfLines={1}
+          >
             {displayName}
           </Text>
           {chat.lastMessage && (
-            <Text style={[styles.timestamp, { color: theme.colors.textSecondary }]}>
+            <Text
+              style={[styles.timestamp, { color: theme.colors.textSecondary }]}
+            >
               {formatTime(chat.lastActivity)}
             </Text>
           )}
@@ -86,7 +101,10 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
             style={[
               styles.lastMessage,
               { color: theme.colors.textSecondary },
-              chat.unreadCount > 0 && { fontWeight: '600', color: theme.colors.text }
+              chat.unreadCount > 0 && {
+                fontWeight: '600',
+                color: theme.colors.text,
+              },
             ]}
             numberOfLines={1}
           >
@@ -94,7 +112,14 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
           </Text>
 
           {chat.unreadCount > 0 && (
-            <View style={[styles.unreadBadge, { backgroundColor: theme.colors.primary || '#007AFF' }]}>
+            <View
+              style={[
+                styles.unreadBadge,
+                {
+                  backgroundColor: theme.isDark ? '#0A84FF' : '#007AFF',
+                },
+              ]}
+            >
               <Text style={styles.unreadText}>
                 {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
               </Text>
@@ -138,7 +163,7 @@ export function ChatListScreen() {
     Alert.alert(
       'Nova Conversa',
       'Esta funcionalidade será implementada em breve',
-      [{ text: 'OK' }]
+      [{ text: 'OK' }],
     );
   };
 
@@ -148,29 +173,34 @@ export function ChatListScreen() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
-        💬
-      </Text>
+      <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>💬</Text>
       <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>
         Nenhuma conversa
       </Text>
-      <Text style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}>
+      <Text
+        style={[styles.emptySubtitle, { color: theme.colors.textSecondary }]}
+      >
         Suas conversas aparecerão aqui
       </Text>
       <TouchableOpacity
-        style={[styles.newChatButton, { backgroundColor: theme.colors.primary || '#007AFF' }]}
+        style={[
+          styles.newChatButton,
+          { backgroundColor: theme.colors.primary || '#007AFF' },
+        ]}
         onPress={handleNewChat}
       >
-        <Text style={styles.newChatButtonText}>
-          Iniciar Nova Conversa
-        </Text>
+        <Text style={styles.newChatButtonText}>Iniciar Nova Conversa</Text>
       </TouchableOpacity>
     </View>
   );
 
   if (loading && chats.length === 0) {
     return (
-      <MainLayout title="Conversas" leftIcon="back" onLeftPress={handleBackPress}>
+      <MainLayout
+        title="Conversas"
+        leftIcon="back"
+        onLeftPress={handleBackPress}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.text }]}>
@@ -183,18 +213,28 @@ export function ChatListScreen() {
 
   if (error) {
     return (
-      <MainLayout title="Conversas" leftIcon="back" onLeftPress={handleBackPress}>
+      <MainLayout
+        title="Conversas"
+        leftIcon="back"
+        onLeftPress={handleBackPress}
+      >
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: theme.colors.error || '#FF3B30' }]}>
+          <Text
+            style={[
+              styles.errorText,
+              { color: theme.colors.error || '#FF3B30' },
+            ]}
+          >
             {error}
           </Text>
           <TouchableOpacity
-            style={[styles.retryButton, { backgroundColor: theme.colors.primary || '#007AFF' }]}
+            style={[
+              styles.retryButton,
+              { backgroundColor: theme.colors.primary || '#007AFF' },
+            ]}
             onPress={loadChats}
           >
-            <Text style={styles.retryButtonText}>
-              Tentar Novamente
-            </Text>
+            <Text style={styles.retryButtonText}>Tentar Novamente</Text>
           </TouchableOpacity>
         </View>
       </MainLayout>
@@ -212,9 +252,11 @@ export function ChatListScreen() {
       <FlatList
         data={chats}
         renderItem={renderChatItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         style={styles.chatList}
-        contentContainerStyle={chats.length === 0 ? styles.emptyContainer : undefined}
+        contentContainerStyle={
+          chats.length === 0 ? styles.emptyContainer : undefined
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

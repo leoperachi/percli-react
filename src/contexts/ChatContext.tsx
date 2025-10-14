@@ -97,150 +97,153 @@ interface ChatProviderProps {
   children: ReactNode;
 }
 
+// Mock data for development - replace with real API calls
+const generateMockChats = (userId?: string): Chat[] => {
+  const mockUsers: ChatUser[] = [
+    {
+      id: '2',
+      name: 'João Silva',
+      avatar: undefined,
+      isOnline: true,
+      lastSeen: undefined,
+    },
+    {
+      id: '3',
+      name: 'Maria Santos',
+      avatar: undefined,
+      isOnline: false,
+      lastSeen: '2025-09-25T19:30:00Z',
+    },
+    {
+      id: '4',
+      name: 'Pedro Costa',
+      avatar: undefined,
+      isOnline: true,
+      lastSeen: undefined,
+    },
+  ];
+
+  return [
+    {
+      id: 'chat1',
+      participants: [mockUsers[0]],
+      lastMessage: {
+        id: 'msg1',
+        text: 'Olá! Como você está?',
+        senderId: '2',
+        receiverId: userId || '1',
+        chatId: 'chat1',
+        timestamp: '2025-09-25T19:45:00Z',
+        isRead: false,
+        messageType: 'text',
+      },
+      lastActivity: '2025-09-25T19:45:00Z',
+      unreadCount: 2,
+      chatType: 'direct',
+      createdAt: '2025-09-24T10:00:00Z',
+      updatedAt: '2025-09-25T19:45:00Z',
+    },
+    {
+      id: 'chat2',
+      participants: [mockUsers[1]],
+      lastMessage: {
+        id: 'msg2',
+        text: 'Perfeito! Vou enviar os documentos.',
+        senderId: userId || '1',
+        receiverId: '3',
+        chatId: 'chat2',
+        timestamp: '2025-09-25T18:20:00Z',
+        isRead: true,
+        messageType: 'text',
+      },
+      lastActivity: '2025-09-25T18:20:00Z',
+      unreadCount: 0,
+      chatType: 'direct',
+      createdAt: '2025-09-23T14:30:00Z',
+      updatedAt: '2025-09-25T18:20:00Z',
+    },
+    {
+      id: 'chat3',
+      participants: [mockUsers[2]],
+      lastActivity: '2025-09-25T16:15:00Z',
+      unreadCount: 0,
+      chatType: 'direct',
+      createdAt: '2025-09-25T16:00:00Z',
+      updatedAt: '2025-09-25T16:15:00Z',
+    },
+  ];
+};
+
+const generateMockMessages = (
+  chatId: string,
+  userId?: string,
+): ChatMessage[] => {
+  const messages: { [key: string]: ChatMessage[] } = {
+    chat1: [
+      {
+        id: 'msg1-1',
+        text: 'Oi! Tudo bem?',
+        senderId: userId || '1',
+        receiverId: '2',
+        chatId: 'chat1',
+        timestamp: '2025-09-25T19:40:00Z',
+        isRead: true,
+        messageType: 'text',
+      },
+      {
+        id: 'msg1-2',
+        text: 'Olá! Como você está?',
+        senderId: '2',
+        receiverId: userId || '1',
+        chatId: 'chat1',
+        timestamp: '2025-09-25T19:42:00Z',
+        isRead: false,
+        messageType: 'text',
+      },
+      {
+        id: 'msg1-3',
+        text: 'Precisa da ajuda com alguma coisa?',
+        senderId: '2',
+        receiverId: userId || '1',
+        chatId: 'chat1',
+        timestamp: '2025-09-25T19:45:00Z',
+        isRead: false,
+        messageType: 'text',
+      },
+    ],
+    chat2: [
+      {
+        id: 'msg2-1',
+        text: 'Você poderia me enviar os documentos do projeto?',
+        senderId: '3',
+        receiverId: userId || '1',
+        chatId: 'chat2',
+        timestamp: '2025-09-25T18:15:00Z',
+        isRead: true,
+        messageType: 'text',
+      },
+      {
+        id: 'msg2-2',
+        text: 'Perfeito! Vou enviar os documentos.',
+        senderId: userId || '1',
+        receiverId: '3',
+        chatId: 'chat2',
+        timestamp: '2025-09-25T18:20:00Z',
+        isRead: true,
+        messageType: 'text',
+      },
+    ],
+    chat3: [],
+  };
+
+  return messages[chatId] || [];
+};
+
 export function ChatProvider({ children }: ChatProviderProps) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { user } = useAppContext();
 
-  // Mock data for development - replace with real API calls
-  const generateMockChats = (): Chat[] => {
-    const mockUsers: ChatUser[] = [
-      {
-        id: '2',
-        name: 'João Silva',
-        avatar: undefined,
-        isOnline: true,
-        lastSeen: undefined,
-      },
-      {
-        id: '3',
-        name: 'Maria Santos',
-        avatar: undefined,
-        isOnline: false,
-        lastSeen: '2025-09-25T19:30:00Z',
-      },
-      {
-        id: '4',
-        name: 'Pedro Costa',
-        avatar: undefined,
-        isOnline: true,
-        lastSeen: undefined,
-      },
-    ];
-
-    return [
-      {
-        id: 'chat1',
-        participants: [mockUsers[0]],
-        lastMessage: {
-          id: 'msg1',
-          text: 'Olá! Como você está?',
-          senderId: '2',
-          receiverId: user?.id || '1',
-          chatId: 'chat1',
-          timestamp: '2025-09-25T19:45:00Z',
-          isRead: false,
-          messageType: 'text',
-        },
-        lastActivity: '2025-09-25T19:45:00Z',
-        unreadCount: 2,
-        chatType: 'direct',
-        createdAt: '2025-09-24T10:00:00Z',
-        updatedAt: '2025-09-25T19:45:00Z',
-      },
-      {
-        id: 'chat2',
-        participants: [mockUsers[1]],
-        lastMessage: {
-          id: 'msg2',
-          text: 'Perfeito! Vou enviar os documentos.',
-          senderId: user?.id || '1',
-          receiverId: '3',
-          chatId: 'chat2',
-          timestamp: '2025-09-25T18:20:00Z',
-          isRead: true,
-          messageType: 'text',
-        },
-        lastActivity: '2025-09-25T18:20:00Z',
-        unreadCount: 0,
-        chatType: 'direct',
-        createdAt: '2025-09-23T14:30:00Z',
-        updatedAt: '2025-09-25T18:20:00Z',
-      },
-      {
-        id: 'chat3',
-        participants: [mockUsers[2]],
-        lastActivity: '2025-09-25T16:15:00Z',
-        unreadCount: 0,
-        chatType: 'direct',
-        createdAt: '2025-09-25T16:00:00Z',
-        updatedAt: '2025-09-25T16:15:00Z',
-      },
-    ];
-  };
-
-  const generateMockMessages = (chatId: string): ChatMessage[] => {
-    const messages: { [key: string]: ChatMessage[] } = {
-      chat1: [
-        {
-          id: 'msg1-1',
-          text: 'Oi! Tudo bem?',
-          senderId: user?.id || '1',
-          receiverId: '2',
-          chatId: 'chat1',
-          timestamp: '2025-09-25T19:40:00Z',
-          isRead: true,
-          messageType: 'text',
-        },
-        {
-          id: 'msg1-2',
-          text: 'Olá! Como você está?',
-          senderId: '2',
-          receiverId: user?.id || '1',
-          chatId: 'chat1',
-          timestamp: '2025-09-25T19:42:00Z',
-          isRead: false,
-          messageType: 'text',
-        },
-        {
-          id: 'msg1-3',
-          text: 'Precisa da ajuda com alguma coisa?',
-          senderId: '2',
-          receiverId: user?.id || '1',
-          chatId: 'chat1',
-          timestamp: '2025-09-25T19:45:00Z',
-          isRead: false,
-          messageType: 'text',
-        },
-      ],
-      chat2: [
-        {
-          id: 'msg2-1',
-          text: 'Você poderia me enviar os documentos do projeto?',
-          senderId: '3',
-          receiverId: user?.id || '1',
-          chatId: 'chat2',
-          timestamp: '2025-09-25T18:15:00Z',
-          isRead: true,
-          messageType: 'text',
-        },
-        {
-          id: 'msg2-2',
-          text: 'Perfeito! Vou enviar os documentos.',
-          senderId: user?.id || '1',
-          receiverId: '3',
-          chatId: 'chat2',
-          timestamp: '2025-09-25T18:20:00Z',
-          isRead: true,
-          messageType: 'text',
-        },
-      ],
-      chat3: [],
-    };
-
-    return messages[chatId] || [];
-  };
-
-  const loadChats = async (): Promise<void> => {
+  const loadChats = useCallback(async (): Promise<void> => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
@@ -248,31 +251,34 @@ export function ChatProvider({ children }: ChatProviderProps) {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const chats = generateMockChats();
+      const chats = generateMockChats(user?.id);
       dispatch({ type: 'SET_CHATS', payload: chats });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar chats' });
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, [user?.id]);
 
-  const loadMessages = async (chatId: string): Promise<void> => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'SET_ERROR', payload: null });
+  const loadMessages = useCallback(
+    async (chatId: string): Promise<void> => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 300));
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-      const messages = generateMockMessages(chatId);
-      dispatch({ type: 'SET_MESSAGES', payload: messages });
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar mensagens' });
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  };
+        const messages = generateMockMessages(chatId, user?.id);
+        dispatch({ type: 'SET_MESSAGES', payload: messages });
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar mensagens' });
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [user?.id],
+  );
 
   const sendMessage = async (
     text: string,

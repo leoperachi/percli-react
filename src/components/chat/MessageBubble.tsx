@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ChatMessage } from '../../types';
+import type { ChatMessage } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppContext } from '../../contexts/AppContext';
 
@@ -18,12 +18,26 @@ export function MessageBubble({
   const { theme } = useTheme();
   const { user } = useAppContext();
 
-  // Determine if we're in dark mode
-  const isDarkMode =
-    theme.colors.background === '#000000' ||
-    theme.colors.background === '#1a1a1a';
-
   const isOwnMessage = message.senderId === user?.id;
+
+  // Determine colors based on message type and theme
+  const getMessageColors = () => {
+    if (isOwnMessage) {
+      // Own messages: use specific colors for good contrast
+      return {
+        backgroundColor: theme.isDark ? '#0A84FF' : '#007AFF', // Different blue shades for each mode
+        textColor: '#FFFFFF', // Always white on blue background
+      };
+    } else {
+      // Other messages: use surface color for background, appropriate text color
+      return {
+        backgroundColor: theme.isDark ? '#2A2A2A' : '#E5E7EB',
+        textColor: theme.isDark ? '#FFFFFF' : '#000000', // White on dark, black on light
+      };
+    }
+  };
+
+  const messageColors = getMessageColors();
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('pt-BR', {
@@ -59,9 +73,12 @@ export function MessageBubble({
           isOwnMessage
             ? [
                 styles.ownBubble,
-                { backgroundColor: theme.colors.primary || '#007AFF' },
+                { backgroundColor: messageColors.backgroundColor },
               ]
-            : [styles.otherBubble, { backgroundColor: theme.colors.surface }],
+            : [
+                styles.otherBubble,
+                { backgroundColor: messageColors.backgroundColor },
+              ],
         ]}
         onPress={handlePress}
         onLongPress={handleLongPress}
@@ -92,11 +109,7 @@ export function MessageBubble({
               style={[
                 styles.replyText,
                 {
-                  color: isOwnMessage
-                    ? '#FFFFFF'
-                    : isDarkMode
-                    ? '#666666'
-                    : '#CCCCCC',
+                  color: messageColors.textColor,
                 },
               ]}
               numberOfLines={2}
@@ -110,11 +123,7 @@ export function MessageBubble({
           style={[
             styles.messageText,
             {
-              color: isOwnMessage
-                ? '#FFFFFF'
-                : isDarkMode
-                ? '#000000'
-                : '#FFFFFF',
+              color: messageColors.textColor,
             },
           ]}
         >
@@ -128,9 +137,9 @@ export function MessageBubble({
               {
                 color: isOwnMessage
                   ? 'rgba(255,255,255,0.7)'
-                  : isDarkMode
-                  ? '#666666'
-                  : '#CCCCCC',
+                  : theme.isDark
+                  ? 'rgba(255,255,255,0.6)'
+                  : 'rgba(0,0,0,0.6)',
               },
             ]}
           >
