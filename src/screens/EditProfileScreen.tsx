@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -62,7 +62,6 @@ export function EditProfileScreen() {
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       } catch (err) {
-        console.warn(err);
         return false;
       }
     }
@@ -90,14 +89,9 @@ export function EditProfileScreen() {
   };
 
   const handleSelectPhoto = async () => {
-    console.log('🔥 [DEBUG] handleSelectPhoto called - function started');
-    console.log('🔥 [DEBUG] Platform.OS:', Platform.OS);
-
     const hasPermission = await requestPermissions();
-    console.log('🔥 [DEBUG] Permission result:', hasPermission);
 
     if (!hasPermission) {
-      console.log('🔥 [DEBUG] Permission denied, showing alert');
       Alert.alert(
         'Permissão necessária',
         'Precisamos de permissão para acessar sua galeria.',
@@ -113,47 +107,22 @@ export function EditProfileScreen() {
       includeBase64: true,
     };
 
-    console.log('🔥 [DEBUG] Calling launchImageLibrary with options:', options);
-
     launchImageLibrary(options, (response: ImagePickerResponse) => {
-      console.log('🔥 [DEBUG] launchImageLibrary response received:', {
-        didCancel: response.didCancel,
-        errorMessage: response.errorMessage,
-        assets: response.assets?.length || 0,
-      });
       if (response.didCancel) {
-        console.log('User cancelled image picker');
       } else if (response.errorMessage) {
-        console.log('ImagePicker Error: ', response.errorMessage);
         Alert.alert('Erro', 'Erro ao selecionar a imagem');
       } else if (response.assets?.[0]) {
         const asset = response.assets?.[0];
-        console.log(
-          '🔥 [DEBUG] Original image size:',
-          asset.fileSize
-            ? `${(asset.fileSize / 1024).toFixed(2)}KB`
-            : 'unknown',
-        );
 
         if (asset.base64) {
-          console.log('🔥 [DEBUG] Base64 length:', asset.base64.length);
-          console.log(
-            '🔥 [DEBUG] Estimated size:',
-            `${((asset.base64.length * 0.75) / 1024).toFixed(2)}KB`,
-          );
           setProfilePhotoBase64(asset.base64);
         } else if (asset.uri) {
           // Fallback: convert URI to base64
           convertImageToBase64(asset.uri)
             .then(base64 => {
-              console.log(
-                '🔥 [DEBUG] URI converted, size:',
-                `${((base64.length * 0.75) / 1024).toFixed(2)}KB`,
-              );
               setProfilePhotoBase64(base64);
             })
             .catch(error => {
-              console.error('Error converting URI to base64:', error);
               Alert.alert('Erro', 'Erro ao processar a imagem');
             });
         }
@@ -167,14 +136,6 @@ export function EditProfileScreen() {
     setIsLoading(true);
 
     try {
-      console.log('Saving profile:', {
-        aboutUs,
-        phoneNo,
-        gender,
-        city,
-        profilePhoto: profilePhotoBase64,
-      });
-
       // Prepare profile data
       const profileData: any = {};
 
@@ -188,8 +149,6 @@ export function EditProfileScreen() {
       // Include current user data that shouldn't change
       if (user?.name) profileData.name = user.name;
       if (user?.email) profileData.email = user.email;
-
-      console.log('Sending profile data to API:', Object.keys(profileData));
 
       // Call API to update profile
       const response = await apiService.updateUserProfileWithPhoto(profileData);
@@ -215,7 +174,6 @@ export function EditProfileScreen() {
         );
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
       Alert.alert(
         'Erro',
         'Erro inesperado ao salvar perfil. Verifique sua conexão e tente novamente.',
@@ -238,7 +196,6 @@ export function EditProfileScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            console.log('Account deleted');
             logout();
           },
         },
@@ -276,7 +233,6 @@ export function EditProfileScreen() {
             <TouchableOpacity
               style={styles.profileImageContainer}
               onPress={() => {
-                console.log('🔥 [DEBUG] TouchableOpacity onPress triggered');
                 handleSelectPhoto();
               }}
               activeOpacity={0.8}

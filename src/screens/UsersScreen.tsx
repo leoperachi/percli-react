@@ -33,7 +33,6 @@ export function UsersScreen() {
         Alert.alert('Error', response.error || 'Failed to load users');
       }
     } catch (error) {
-      console.error('Error loading users:', error);
       Alert.alert('Error', 'Failed to load users');
     } finally {
       setLoading(false);

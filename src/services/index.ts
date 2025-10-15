@@ -24,13 +24,11 @@ export const authService = {
       );
 
       if (response.success) {
-        console.log('Login successful:', response.data);
         return response.data;
       } else {
         throw new Error(response.error || 'Login failed');
       }
     } catch (error) {
-      console.error('Login error:', error);
       throw error;
     }
   },
@@ -49,13 +47,11 @@ export const authService = {
       );
 
       if (response.success) {
-        console.log('Registration successful:', response.data);
         return response.data;
       } else {
         throw new Error(response.error || 'Registration failed');
       }
     } catch (error) {
-      console.error('Registration error:', error);
       throw error;
     }
   },
@@ -73,13 +69,11 @@ export const authService = {
       );
 
       if (response.success) {
-        console.log('Password changed successfully');
         return true;
       } else {
         throw new Error(response.error || 'Password change failed');
       }
     } catch (error) {
-      console.error('Change password error:', error);
       throw error;
     }
   },
@@ -87,10 +81,8 @@ export const authService = {
   // Logout user
   async logout() {
     try {
-      console.log('Logout successful');
       return true;
     } catch (error) {
-      console.error('Logout error:', error);
       // Even if logout fails on server, clear local data
       return true;
     }
@@ -124,7 +116,6 @@ export const userService = {
         throw new Error(response.error || 'Failed to get profile');
       }
     } catch (error) {
-      console.error('Get profile error:', error);
       throw error;
     }
   },
@@ -139,13 +130,11 @@ export const userService = {
       const response = await HttpService.updateUserProfile(userData);
 
       if (response.success) {
-        console.log('Profile updated successfully');
         return response.data;
       } else {
         throw new Error(response.error || 'Failed to update profile');
       }
     } catch (error) {
-      console.error('Update profile error:', error);
       throw error;
     }
   },
@@ -168,7 +157,6 @@ export const apiService = {
         throw new Error(response.error || 'Request failed');
       }
     } catch (error) {
-      console.error('GET request error:', error);
       throw error;
     }
   },
@@ -188,7 +176,6 @@ export const apiService = {
         throw new Error(response.error || 'Request failed');
       }
     } catch (error) {
-      console.error('POST request error:', error);
       throw error;
     }
   },
@@ -208,7 +195,6 @@ export const apiService = {
         throw new Error(response.error || 'Request failed');
       }
     } catch (error) {
-      console.error('PUT request error:', error);
       throw error;
     }
   },
@@ -228,7 +214,6 @@ export const apiService = {
         throw new Error(response.error || 'Request failed');
       }
     } catch (error) {
-      console.error('DELETE request error:', error);
       throw error;
     }
   },

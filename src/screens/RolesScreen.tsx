@@ -45,7 +45,6 @@ export function RolesScreen() {
         Alert.alert('Error', response.error || 'Failed to load roles');
       }
     } catch (error) {
-      console.error('Error loading roles:', error);
       Alert.alert('Error', 'Failed to load roles');
     } finally {
       setLoading(false);

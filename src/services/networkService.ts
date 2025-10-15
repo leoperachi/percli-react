@@ -1,6 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
-import { NetworkStatus } from './httpConfig';
-import { log, logError } from './environment';
+import { NetworkStatus } from '../config/httpConfig';
+import { log, logError } from '../config/environment';
 
 class NetworkService {
   private networkStatus: NetworkStatus = {
@@ -58,7 +58,8 @@ class NetworkService {
   // Check if device is connected to internet
   isConnected(): boolean {
     return (
-      this.networkStatus.isConnected && this.networkStatus.isInternetReachable
+      this.networkStatus.isConnected &&
+      (this.networkStatus.isInternetReachable ?? false)
     );
   }
 
@@ -96,9 +97,9 @@ class NetworkService {
     try {
       const state = await NetInfo.fetch();
       return {
-        isConnected: state.isConnected,
+        isConnected: state.isConnected ?? false,
         type: state.type,
-        isInternetReachable: state.isInternetReachable,
+        isInternetReachable: state.isInternetReachable ?? false,
         details: state.details,
       };
     } catch (error) {

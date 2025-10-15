@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -154,7 +154,6 @@ export const ManageAuthorizationsModal: React.FC<
 
       setAllAuthorizations(mockAuthorizations);
     } catch (error) {
-      console.error('Error loading authorizations:', error);
       Alert.alert('Error', 'Failed to load authorizations');
     } finally {
       setLoading(false);
@@ -211,14 +210,10 @@ export const ManageAuthorizationsModal: React.FC<
 
       // Here you would make the API call to update role authorizations
       // await apiService.updateRoleAuthorizations(roleId, updatedAuthorizations);
-
-      console.log('Updated authorizations:', updatedAuthorizations);
-
       onAuthorizationsUpdated(updatedAuthorizations);
       Alert.alert('Success', 'Authorizations updated successfully');
       onClose();
     } catch (error) {
-      console.error('Error saving authorizations:', error);
       Alert.alert('Error', 'Failed to save authorizations');
     } finally {
       setLoading(false);

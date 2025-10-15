@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -160,7 +160,6 @@ export function RoleDetailsScreen() {
 
       setRoleDetails(mockRoleDetails);
     } catch (error) {
-      console.error('Error loading role details:', error);
       Alert.alert('Error', 'Failed to load role details');
     } finally {
       setLoading(false);

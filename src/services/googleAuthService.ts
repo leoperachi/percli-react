@@ -3,7 +3,11 @@ import {
   GoogleSigninButton,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { GOOGLE_CONFIG, GoogleAuthResult, GoogleUser } from '../config/googleAuth';
+import {
+  GOOGLE_CONFIG,
+  GoogleAuthResult,
+  GoogleUser,
+} from '../config/googleAuth';
 
 class GoogleAuthService {
   private isConfigured = false;
@@ -25,12 +29,9 @@ class GoogleAuthService {
       hostedDomain: GOOGLE_CONFIG.HOSTED_DOMAIN || '',
     };
 
-    console.log('GoogleAuthService - Configuring with:', config);
-
     GoogleSignin.configure(config);
 
     this.isConfigured = true;
-    console.log('GoogleAuthService - Configuration completed');
   }
 
   /**
@@ -48,21 +49,22 @@ class GoogleAuthService {
       // Faz o sign in
       const userInfo = await GoogleSignin.signIn();
 
-      console.log('GoogleAuthService - userInfo received:', JSON.stringify(userInfo, null, 2));
-
       // Verifica se temos as informações necessárias
       if (!userInfo) {
         throw new Error('UserInfo é null/undefined');
       }
 
       // A estrutura real parece ser { type, data } ao invés de { user }
-      const userData = userInfo.user || userInfo.data;
+      const userData = (userInfo as any).user || (userInfo as any).data;
       if (!userData) {
-        throw new Error(`UserInfo.user/data é null/undefined. UserInfo keys: ${Object.keys(userInfo).join(', ')}`);
+        throw new Error(
+          `UserInfo.user/data é null/undefined. UserInfo keys: ${Object.keys(
+            userInfo,
+          ).join(', ')}`,
+        );
       }
 
       const user = userData;
-      console.log('GoogleAuthService - user object:', JSON.stringify(user, null, 2));
 
       // Monta o objeto de retorno usando os campos corretos do log
       const result: GoogleAuthResult = {
@@ -75,16 +77,12 @@ class GoogleAuthService {
           familyName: user.familyName || null,
           givenName: user.givenName || null,
         },
-        serverAuthCode: userInfo.serverAuthCode || undefined,
-        idToken: userInfo.idToken || undefined,
+        serverAuthCode: (userInfo as any).serverAuthCode || undefined,
+        idToken: (userInfo as any).idToken || undefined,
       };
-
-      console.log('GoogleAuthService - result prepared:', JSON.stringify(result, null, 2));
 
       return result;
     } catch (error: any) {
-      console.error('GoogleAuthService - Error during sign in:', error);
-
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         return { type: 'cancelled' };
       } else if (error.code === statusCodes.IN_PROGRESS) {
@@ -104,7 +102,7 @@ class GoogleAuthService {
     try {
       await GoogleSignin.signOut();
     } catch (error) {
-      console.error('GoogleAuthService - Error during sign out:', error);
+      // Silently handle error
     }
   }
 
@@ -115,7 +113,7 @@ class GoogleAuthService {
     try {
       await GoogleSignin.revokeAccess();
     } catch (error) {
-      console.error('GoogleAuthService - Error during revoke access:', error);
+      // Silently handle error
     }
   }
 
@@ -124,9 +122,8 @@ class GoogleAuthService {
    */
   async isSignedIn(): Promise<boolean> {
     try {
-      return await GoogleSignin.isSignedIn();
+      return await (GoogleSignin as any).isSignedIn();
     } catch (error) {
-      console.error('GoogleAuthService - Error checking sign in status:', error);
       return false;
     }
   }
@@ -139,16 +136,16 @@ class GoogleAuthService {
       const userInfo = await GoogleSignin.getCurrentUser();
       if (!userInfo) return null;
 
+      const user = (userInfo as any).user;
       return {
-        id: userInfo.user.id,
-        name: userInfo.user.name,
-        email: userInfo.user.email,
-        photo: userInfo.user.photo,
-        familyName: userInfo.user.familyName,
-        givenName: userInfo.user.givenName,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        photo: user.photo,
+        familyName: user.familyName,
+        givenName: user.givenName,
       };
     } catch (error) {
-      console.error('GoogleAuthService - Error getting current user:', error);
       return null;
     }
   }
@@ -161,16 +158,16 @@ class GoogleAuthService {
       this.configure();
       const userInfo = await GoogleSignin.signInSilently();
 
+      const user = (userInfo as any).user;
       return {
-        id: userInfo.user.id,
-        name: userInfo.user.name,
-        email: userInfo.user.email,
-        photo: userInfo.user.photo,
-        familyName: userInfo.user.familyName,
-        givenName: userInfo.user.givenName,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        photo: user.photo,
+        familyName: user.familyName,
+        givenName: user.givenName,
       };
     } catch (error) {
-      console.error('GoogleAuthService - Error during silent sign in:', error);
       return null;
     }
   }

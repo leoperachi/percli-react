@@ -25,37 +25,31 @@ class HybridStorageService {
     options?: StorageOptions,
   ): Promise<boolean> {
     try {
-      console.log('🔄 [HYBRID STORAGE] Attempting to store auth data...');
+
       const { user, tokens } = authData;
 
       // Try Keychain first (more secure)
       const keychainSuccess = await this.tryKeychainStorage(authData);
 
       if (keychainSuccess) {
-        console.log('✅ [HYBRID STORAGE] Successfully stored in Keychain');
+
         await this.setStorageMethod('keychain');
         return true;
       }
 
       // Fallback to AsyncStorage
-      console.log(
-        '🔄 [HYBRID STORAGE] Keychain failed, using AsyncStorage fallback...',
-      );
+
       const asyncSuccess = await this.tryAsyncStorageStorage(authData);
 
       if (asyncSuccess) {
-        console.log('✅ [HYBRID STORAGE] Successfully stored in AsyncStorage');
+
         await this.setStorageMethod('async');
         return true;
       }
 
-      console.error('❌ [HYBRID STORAGE] Both storage methods failed');
       return false;
     } catch (error) {
-      console.error(
-        '❌ [HYBRID STORAGE] Critical error in setAuthData:',
-        error,
-      );
+
       return false;
     }
   }
@@ -70,12 +64,12 @@ class HybridStorageService {
       const refreshToken = tokens.refresh || tokens.refresh_token;
 
       if (!accessToken || !refreshToken) {
-        console.error('🔐 [KEYCHAIN] Missing tokens in auth data:', tokens);
+
         return false;
       }
 
       // Use minimal Keychain options to avoid crashes
-      const options: Keychain.Options = {
+      const options = {
         service: this.KEYCHAIN_SERVICE,
       };
 
@@ -110,7 +104,7 @@ class HybridStorageService {
 
       return true;
     } catch (error) {
-      console.error('🔐 [KEYCHAIN] Storage failed:', error);
+
       return false;
     }
   }
@@ -127,10 +121,7 @@ class HybridStorageService {
       const refreshToken = tokens.refresh || tokens.refresh_token;
 
       if (!accessToken || !refreshToken) {
-        console.error(
-          '💾 [ASYNC STORAGE] Missing tokens in auth data:',
-          tokens,
-        );
+
         return false;
       }
 
@@ -155,7 +146,7 @@ class HybridStorageService {
 
       return true;
     } catch (error) {
-      console.error('💾 [ASYNC STORAGE] Storage failed:', error);
+
       return false;
     }
   }
@@ -171,7 +162,7 @@ class HybridStorageService {
         return await this.getUserDataFromAsyncStorage();
       }
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error getting user data:', error);
+
       return null;
     }
   }
@@ -187,7 +178,7 @@ class HybridStorageService {
         return await this.getAccessTokenFromAsyncStorage();
       }
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error getting access token:', error);
+
       return null;
     }
   }
@@ -203,7 +194,7 @@ class HybridStorageService {
         return await this.getRefreshTokenFromAsyncStorage();
       }
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error getting refresh token:', error);
+
       return null;
     }
   }
@@ -219,7 +210,7 @@ class HybridStorageService {
         return await this.isAuthenticatedFromAsyncStorage();
       }
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error checking auth state:', error);
+
       return false;
     }
   }
@@ -227,7 +218,6 @@ class HybridStorageService {
   // Clear all auth data from both storage methods
   async clearAuthData(): Promise<boolean> {
     try {
-      console.log('🧹 [HYBRID STORAGE] Clearing all auth data...');
 
       // Clear from both methods to be safe
       await Promise.all([
@@ -235,10 +225,9 @@ class HybridStorageService {
         this.clearAsyncStorageData(),
       ]);
 
-      console.log('✅ [HYBRID STORAGE] All auth data cleared');
       return true;
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error clearing auth data:', error);
+
       return false;
     }
   }
@@ -254,7 +243,7 @@ class HybridStorageService {
       }
       return null;
     } catch (error) {
-      console.error('🔐 [KEYCHAIN] Error getting user data:', error);
+
       return null;
     }
   }
@@ -266,7 +255,7 @@ class HybridStorageService {
       );
       return credentials ? credentials.password : null;
     } catch (error) {
-      console.error('🔐 [KEYCHAIN] Error getting access token:', error);
+
       return null;
     }
   }
@@ -278,7 +267,7 @@ class HybridStorageService {
       );
       return credentials ? credentials.password : null;
     } catch (error) {
-      console.error('🔐 [KEYCHAIN] Error getting refresh token:', error);
+
       return null;
     }
   }
@@ -290,7 +279,7 @@ class HybridStorageService {
       );
       return credentials ? credentials.password === 'true' : false;
     } catch (error) {
-      console.error('🔐 [KEYCHAIN] Error checking auth state:', error);
+
       return false;
     }
   }
@@ -300,23 +289,19 @@ class HybridStorageService {
       await Promise.all([
         Keychain.resetInternetCredentials({
           server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.USER_DATA}`,
-          username: 'user_data',
-        }),
+        } as any),
         Keychain.resetInternetCredentials({
           server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.ACCESS_TOKEN}`,
-          username: 'access_token',
-        }),
+        } as any),
         Keychain.resetInternetCredentials({
           server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.REFRESH_TOKEN}`,
-          username: 'refresh_token',
-        }),
+        } as any),
         Keychain.resetInternetCredentials({
           server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.AUTH_STATE}`,
-          username: 'auth_state',
-        }),
+        } as any),
       ]);
     } catch (error) {
-      console.error('🔐 [KEYCHAIN] Error clearing data:', error);
+
     }
   }
 
@@ -328,7 +313,7 @@ class HybridStorageService {
       );
       return userData ? (JSON.parse(userData) as User) : null;
     } catch (error) {
-      console.error('💾 [ASYNC STORAGE] Error getting user data:', error);
+
       return null;
     }
   }
@@ -339,7 +324,7 @@ class HybridStorageService {
         `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.ACCESS_TOKEN}`,
       );
     } catch (error) {
-      console.error('💾 [ASYNC STORAGE] Error getting access token:', error);
+
       return null;
     }
   }
@@ -350,7 +335,7 @@ class HybridStorageService {
         `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.REFRESH_TOKEN}`,
       );
     } catch (error) {
-      console.error('💾 [ASYNC STORAGE] Error getting refresh token:', error);
+
       return null;
     }
   }
@@ -362,7 +347,7 @@ class HybridStorageService {
       );
       return authState === 'true';
     } catch (error) {
-      console.error('💾 [ASYNC STORAGE] Error checking auth state:', error);
+
       return false;
     }
   }
@@ -387,7 +372,7 @@ class HybridStorageService {
         ),
       ]);
     } catch (error) {
-      console.error('💾 [ASYNC STORAGE] Error clearing data:', error);
+
     }
   }
 
@@ -399,7 +384,7 @@ class HybridStorageService {
         method,
       );
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error setting storage method:', error);
+
     }
   }
 
@@ -410,7 +395,7 @@ class HybridStorageService {
       );
       return (method as 'keychain' | 'async') || 'async'; // Default to async if not set
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error getting storage method:', error);
+
       return 'async'; // Safe fallback
     }
   }
@@ -427,7 +412,7 @@ class HybridStorageService {
         hasData: !!(userData && accessToken),
       };
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Error getting storage info:', error);
+
       return { method: 'unknown', hasData: false };
     }
   }

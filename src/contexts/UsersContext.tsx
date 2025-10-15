@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import type { ReactNode } from 'react';
 import apiService from '../services/apiService';
 
@@ -35,7 +41,6 @@ export function UsersProvider({ children }: UsersProviderProps) {
   const onlineUsers = users.filter(user => user.isOnline);
 
   const refreshUsers = useCallback(async () => {
-    console.log('🔄 [UsersContext] Refreshing users...');
     setLoading(true);
     setError(null);
 
@@ -48,7 +53,6 @@ export function UsersProvider({ children }: UsersProviderProps) {
         setError(response.error || 'Failed to load users');
       }
     } catch (err) {
-      console.error('Error loading users:', err);
       setError('Failed to load users');
     } finally {
       setLoading(false);
@@ -60,7 +64,6 @@ export function UsersProvider({ children }: UsersProviderProps) {
   };
 
   useEffect(() => {
-    console.log('👥 [UsersContext] Loading initial users...');
     refreshUsers();
   }, [refreshUsers]);
 

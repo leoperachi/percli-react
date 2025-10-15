@@ -4,10 +4,6 @@
     "enabled": false
   },
   "linter": {
-    "rules": {
-      "correctness": {
-        "useExhaustiveDependencies": "off"
-      }
-    }
+    "rules": {}
   }
 }

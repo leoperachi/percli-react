@@ -24,8 +24,6 @@ class HttpService {
   }> = [];
 
   constructor() {
-    console.log('🌐 [HTTP SERVICE] Initializing with base URL:', ENV.API_BASE_URL);
-    
     this.axiosInstance = axios.create({
       baseURL: ENV.API_BASE_URL,
       timeout: ENV.API_TIMEOUT,

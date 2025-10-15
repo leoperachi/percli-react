@@ -36,9 +36,9 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: Role;
+  role?: Role;
   roleName?: string;
-  isActive: boolean;
+  isActive?: boolean;
   emailVerified?: boolean;
   profilePhoto?: string;
   profilePicture?: string;
@@ -48,7 +48,9 @@ export interface User {
 
 export interface AuthTokens {
   access: string;
+  access_token?: string;
   refresh: string;
+  refresh_token?: string;
   expiresIn: number;
 }
 
@@ -177,4 +179,10 @@ export interface ChatContextType {
   createChat: (participantId: string) => Promise<Chat | null>;
   setCurrentChat: (chat: Chat | null) => void;
   clearMessages: () => void;
+}
+
+// Auth Response interface
+export interface AuthResponse {
+  user: User;
+  tokens: AuthTokens;
 }

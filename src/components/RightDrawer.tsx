@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -37,8 +37,6 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
 
   // Listen for socket events
   useEffect(() => {
-    console.log('👥 [RightDrawer] Setting up socket listeners...');
-
     // Connect socket if not connected
     if (!socketService.isConnected()) {
       socketService.connect();
@@ -47,8 +45,9 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
     const socket = socketService.getSocket();
     if (socket) {
       // Listen for recent conversations
-      const handleRecentConversations = (data: { conversations: RecentConversation[] }) => {
-        console.log('✅ [RightDrawer] Received recent conversations:', data.conversations?.length);
+      const handleRecentConversations = (data: {
+        conversations: RecentConversation[];
+      }) => {
         setConversations(data.conversations || []);
         setLoading(false);
       };
@@ -60,7 +59,6 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
 
       // Cleanup
       return () => {
-        console.log('🧹 [RightDrawer] Cleaning up socket listeners...');
         socket.off('recent_conversations', handleRecentConversations);
       };
     } else {
@@ -69,20 +67,15 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
   }, []);
 
   const handleConversationPress = (conversation: RecentConversation) => {
-    console.log('Opening chat with:', conversation.name);
     onClose();
 
     try {
-      navigation.navigate(
-        'Chat' as never,
-        {
-          chatId: `user_${conversation.userId}`,
-          chatName: conversation.name,
-          userId: conversation.userId,
-        } as never,
-      );
+      (navigation as any).navigate('Chat', {
+        chatId: `user_${conversation.userId}`,
+        chatName: conversation.name,
+        userId: conversation.userId,
+      });
     } catch (error) {
-      console.log('Navigation error:', error);
     }
   };
 
@@ -169,7 +162,6 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                 nestedScrollEnabled={true}
               >
                 {conversations.map(conversation => {
-                  console.log('🔥 [RightDrawer] Rendering conversation:', conversation.name);
                   return (
                     <View
                       key={conversation.userId}
@@ -188,11 +180,16 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                           <View
                             style={[
                               styles.unreadBadge,
-                              { backgroundColor: theme.colors.primary || '#007AFF' },
+                              {
+                                backgroundColor:
+                                  theme.colors.primary || '#007AFF',
+                              },
                             ]}
                           >
                             <Text style={styles.unreadText}>
-                              {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                              {conversation.unreadCount > 9
+                                ? '9+'
+                                : conversation.unreadCount}
                             </Text>
                           </View>
                         )}

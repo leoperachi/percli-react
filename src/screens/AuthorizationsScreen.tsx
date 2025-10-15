@@ -224,7 +224,6 @@ export function AuthorizationsScreen() {
         setLoading(false);
       }, 1000);
     } catch (error) {
-      console.error('Error loading authorizations:', error);
       setLoading(false);
       Alert.alert('Error', 'Failed to load authorizations');
     }

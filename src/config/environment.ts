@@ -41,12 +41,10 @@ export const isProduction = () => ENV.ENVIRONMENT === 'production';
 // Logging helper
 export const log = (...args: any[]) => {
   if (ENV.ENABLE_LOGGING) {
-    console.log('[PerTech App]', ...args);
   }
 };
 
 export const logError = (...args: any[]) => {
   if (ENV.ENABLE_LOGGING) {
-    console.error('[PerTech App Error]', ...args);
   }
 };

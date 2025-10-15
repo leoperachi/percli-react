@@ -1,5 +1,5 @@
 // biome-ignore assist/source/organizeImports: explanation
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -47,8 +47,6 @@ export function ChatScreen() {
   // Create chat from route parameters
   useEffect(() => {
     if (params && (!currentChat || currentChat.id !== params.chatId)) {
-      console.log('🔥 [ChatScreen] Creating chat from params:', params);
-      console.log('🔥 [ChatScreen] Current chat ID:', currentChat?.id);
       const newChat = {
         id: params.chatId,
         chatName: params.chatName,
@@ -65,17 +63,8 @@ export function ChatScreen() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      console.log('🔥 [ChatScreen] Setting current chat:', newChat);
       setCurrentChat(newChat);
     } else {
-      console.log(
-        '🔥 [ChatScreen] Skipping chat creation - params:',
-        !!params,
-        'currentChat:',
-        !!currentChat,
-        'sameId:',
-        currentChat?.id === params?.chatId,
-      );
     }
   }, [params, currentChat, setCurrentChat]);
 
@@ -114,7 +103,7 @@ export function ChatScreen() {
   const handleMessageLongPress = (message: ChatMessage) => {
     Alert.alert('Opções da mensagem', message.text, [
       { text: 'Responder', onPress: () => handleReply(message) },
-      { text: 'Copiar', onPress: () => console.log('Copy message') },
+      { text: 'Copiar', onPress: () => {} },
       { text: 'Cancelar', style: 'cancel' },
     ]);
   };

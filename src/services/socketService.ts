@@ -19,21 +19,18 @@ class SocketServiceImpl implements SocketService {
 
   async connect(token?: string): Promise<void> {
     if (this.socket?.connected || this.isConnecting) {
-      console.log('🔌 [SocketService] Already connected or connecting');
       return;
     }
 
-    console.log('🔌 [SocketService] Connecting to server...');
     this.isConnecting = true;
 
     // Get token from storage if not provided
     let authToken = token;
     if (!authToken) {
-      authToken = await hybridStorageService.getAccessToken();
+      authToken = (await hybridStorageService.getAccessToken()) ?? undefined;
     }
 
     if (!authToken) {
-      console.error('❌ [SocketService] No authentication token available');
       this.isConnecting = false;
       return;
     }
@@ -51,105 +48,107 @@ class SocketServiceImpl implements SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ [SocketService] Connected to server');
       this.isConnecting = false;
     });
 
     this.socket.on('disconnect', reason => {
-      console.log('❌ [SocketService] Disconnected from server:', reason);
       this.isConnecting = false;
 
       // If disconnected due to authentication error, clean up
-      if (reason === 'io server disconnect' || reason === 'io client disconnect') {
-        console.log('🔌 [SocketService] Disconnect reason indicates intentional disconnect');
+      if (
+        reason === 'io server disconnect' ||
+        reason === 'io client disconnect'
+      ) {
+        // Intentional disconnect
       }
     });
 
     this.socket.on('connect_error', error => {
-      console.error('❌ [SocketService] Connection error:', error);
       this.isConnecting = false;
 
       // Check if error is authentication related
       const errorMessage = error?.message || '';
-      if (errorMessage.includes('auth') || errorMessage.includes('token') || errorMessage.includes('unauthorized')) {
-        console.error('🔒 [SocketService] Authentication error - token may be expired');
+      if (
+        errorMessage.includes('auth') ||
+        errorMessage.includes('token') ||
+        errorMessage.includes('unauthorized')
+      ) {
         this.disconnect();
       }
     });
 
     // Chat event listeners
     this.socket.on('new_message', data => {
-      console.log('💬 [SocketService] New message received:', data);
+      // Handle new message
     });
 
     this.socket.on('message_edited', data => {
-      console.log('✏️ [SocketService] Message edited:', data);
+      // Handle message edit
     });
 
     this.socket.on('message_deleted', data => {
-      console.log('🗑️ [SocketService] Message deleted:', data);
+      // Handle message deletion
     });
 
     this.socket.on('user_typing', data => {
-      console.log('⌨️ [SocketService] User typing:', data);
+      // Handle user typing
     });
 
     this.socket.on('unread_messages_count', data => {
-      console.log('📬 [SocketService] Unread messages count:', data);
+      // Handle unread count
     });
 
     this.socket.on('unread_count_updated', data => {
-      console.log('📬 [SocketService] Unread count updated:', data);
+      // Handle unread count update
     });
 
     this.socket.on('joined_chat', data => {
-      console.log('🚪 [SocketService] Joined chat:', data);
+      // Handle joined chat
     });
 
     this.socket.on('left_chat', data => {
-      console.log('🚪 [SocketService] Left chat:', data);
+      // Handle left chat
     });
 
     this.socket.on('user_joined_chat', data => {
-      console.log('👋 [SocketService] User joined chat:', data);
+      // Handle user joined
     });
 
     this.socket.on('user_left_chat', data => {
-      console.log('👋 [SocketService] User left chat:', data);
+      // Handle user left
     });
 
     this.socket.on('messages_marked_read', data => {
-      console.log('✓ [SocketService] Messages marked read:', data);
+      // Handle messages marked read
     });
 
     // Recent conversations event (sent automatically on connect)
     this.socket.on('recent_conversations', data => {
-      console.log('👥 [SocketService] Recent conversations received:', data);
+      // Handle recent conversations
     });
 
     this.socket.on('error', data => {
-      console.error('❌ [SocketService] Socket error:', data);
-
       // Handle authentication errors
       if (data && typeof data === 'object' && 'message' in data) {
         const message = String(data.message).toLowerCase();
-        if (message.includes('auth') || message.includes('token') || message.includes('unauthorized')) {
-          console.error('🔒 [SocketService] Authentication error from server - disconnecting');
+        if (
+          message.includes('auth') ||
+          message.includes('token') ||
+          message.includes('unauthorized')
+        ) {
           this.disconnect();
         }
       }
     });
 
     // Listen for specific auth error event from server
-    this.socket.on('auth_error', (data) => {
-      console.error('🔒 [SocketService] Authentication error event received:', data);
+    this.socket.on('auth_error', data => {
       this.disconnect();
     });
   }
 
   disconnect(): void {
     if (this.socket) {
-      console.log('🔌 [SocketService] Disconnecting from server...');
       this.socket.disconnect();
       this.socket = null;
       this.isConnecting = false;
@@ -158,27 +157,18 @@ class SocketServiceImpl implements SocketService {
 
   emit(event: string, data?: unknown): void {
     if (this.socket?.connected) {
-      console.log(`📤 [SocketService] Emitting ${event}:`, data);
       this.socket.emit(event, data);
-    } else {
-      console.warn(`⚠️ [SocketService] Cannot emit ${event} - not connected`);
     }
   }
 
   on(event: string, callback: (data: unknown) => void): void {
     if (this.socket) {
-      console.log(`👂 [SocketService] Listening for ${event}`);
       this.socket.on(event, callback);
-    } else {
-      console.warn(
-        `⚠️ [SocketService] Cannot listen for ${event} - socket not initialized`,
-      );
     }
   }
 
   off(event: string, callback?: (data: unknown) => void): void {
     if (this.socket) {
-      console.log(`🔇 [SocketService] Removing listener for ${event}`);
       this.socket.off(event, callback);
     }
   }
@@ -189,12 +179,10 @@ class SocketServiceImpl implements SocketService {
 
   // Chat-specific methods
   joinChat(chatId: string): void {
-    console.log('🚪 [SocketService] Joining chat:', chatId);
     this.emit('join_chat', { chatId });
   }
 
   leaveChat(chatId: string): void {
-    console.log('🚪 [SocketService] Leaving chat:', chatId);
     this.emit('leave_chat', { chatId });
   }
 
@@ -207,22 +195,18 @@ class SocketServiceImpl implements SocketService {
     fileName?: string;
     fileSize?: number;
   }): void {
-    console.log('💬 [SocketService] Sending message:', data);
     this.emit('send_message', data);
   }
 
   editMessage(messageId: string, content: string): void {
-    console.log('✏️ [SocketService] Editing message:', messageId);
     this.emit('edit_message', { messageId, content });
   }
 
   deleteMessage(messageId: string): void {
-    console.log('🗑️ [SocketService] Deleting message:', messageId);
     this.emit('delete_message', { messageId });
   }
 
   markMessagesRead(messageIds: string[]): void {
-    console.log('✓ [SocketService] Marking messages as read:', messageIds);
     this.emit('mark_messages_read', { messageIds });
   }
 
@@ -236,7 +220,6 @@ class SocketServiceImpl implements SocketService {
 
   // Request recent conversations (manual refresh)
   getRecentConversations(): void {
-    console.log('👥 [SocketService] Requesting recent conversations...');
     this.emit('get_recent_conversations');
   }
 

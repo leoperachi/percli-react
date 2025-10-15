@@ -101,6 +101,8 @@ export interface AuthResponse {
     name: string;
     email: string;
     emailVerified?: boolean;
+    role?: any;
+    isActive?: boolean;
     createdAt: string;
     updatedAt: string;
   };

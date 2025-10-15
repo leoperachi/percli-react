@@ -66,10 +66,7 @@ export function AppProvider({ children }: AppProviderProps) {
 
         // Clear any existing auth data to ensure clean start
         await apiService.logout();
-
-        console.log('🔥 [APP CONTEXT] App initialized with clean state - user must login manually');
       } catch (error) {
-        console.error('Error initializing app:', error);
       }
     };
 
@@ -137,8 +134,6 @@ export function AppProvider({ children }: AppProviderProps) {
 
       if (response.success && response.data) {
         // Registration successful - check if backend returned user data for auto-login
-        console.log('🔥 [REGISTER] Registration successful, checking for user data...');
-
         if (response.data.user) {
           // Backend returned user data, set user directly (auto-login)
           dispatch({ type: 'SET_USER', payload: response.data.user });
@@ -150,7 +145,6 @@ export function AppProvider({ children }: AppProviderProps) {
               visible: true
             }
           });
-          console.log('🔥 [REGISTER] Auto-login successful with registration response');
           return true;
         } else {
           // Backend didn't return user data, attempt manual login
@@ -158,9 +152,6 @@ export function AppProvider({ children }: AppProviderProps) {
             type: 'SET_LOADING',
             payload: { isLoading: true, message: 'Fazendo login automático...' }
           });
-
-          console.log('🔥 [REGISTER] No user data in registration response, attempting manual login...');
-
           const loginResponse = await apiService.login(email, password);
 
           if (loginResponse.success && loginResponse.data) {
@@ -174,7 +165,6 @@ export function AppProvider({ children }: AppProviderProps) {
                 visible: true
               }
             });
-            console.log('🔥 [REGISTER] Auto-login successful with manual login');
             return true;
           } else {
             // Registration succeeded but auto-login failed
@@ -186,7 +176,6 @@ export function AppProvider({ children }: AppProviderProps) {
                 visible: true
               }
             });
-            console.log('🔥 [REGISTER] Registration successful but auto-login failed');
             return true; // Still return true because registration succeeded
           }
         }
@@ -317,7 +306,6 @@ export function AppProvider({ children }: AppProviderProps) {
 
   const logout = async () => {
     try {
-      console.log('🔌 [AppContext] Logging out - disconnecting socket...');
       // Disconnect socket before clearing user data
       socketService.disconnect();
 
@@ -371,9 +359,6 @@ export function AppProvider({ children }: AppProviderProps) {
 
       // Faz o sign in com Google e obtém o authorization code
       const googleResult = await googleAuthService.signIn();
-
-      console.log('AppContext - Google result received:', JSON.stringify(googleResult, null, 2));
-
       if (googleResult.type === 'cancelled') {
         dispatch({
           type: 'SET_MESSAGE',
@@ -424,8 +409,6 @@ export function AppProvider({ children }: AppProviderProps) {
         return false;
       }
     } catch (error) {
-      console.error('AppContext - Google login error:', error);
-
       let errorMessage = 'Erro de conexão';
       if (error instanceof Error) {
         errorMessage = `Erro: ${error.message}`;

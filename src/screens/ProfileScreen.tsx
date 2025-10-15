@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -25,7 +25,6 @@ export function ProfileScreen() {
 
   const handleSaveProfile = () => {
     // Here you would call an API to update the profile
-    console.log('Saving profile:', { name: editedName, role: editedRole });
     setIsEditModalVisible(false);
   };
 

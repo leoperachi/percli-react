@@ -50,9 +50,9 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
 
   const handleAttachment = () => {
     Alert.alert('Anexar arquivo', 'Escolha uma opção', [
-      { text: 'Câmera', onPress: () => console.log('Camera') },
-      { text: 'Galeria', onPress: () => console.log('Gallery') },
-      { text: 'Documento', onPress: () => console.log('Document') },
+      { text: 'Câmera', onPress: () => {} },
+      { text: 'Galeria', onPress: () => {} },
+      { text: 'Documento', onPress: () => {} },
       { text: 'Cancelar', style: 'cancel' },
     ]);
   };

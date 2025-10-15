@@ -98,7 +98,7 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
     const screenName = getScreenNameFromResource(resource.resource);
     if (screenName) {
       onClose(); // Close drawer first
-      navigation.navigate(screenName);
+      navigation.navigate(screenName as any);
     }
   };
 

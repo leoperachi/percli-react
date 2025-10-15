@@ -164,11 +164,6 @@ export function ChatListScreen() {
         Alert.alert('Erro', 'ID do usuário não encontrado');
         return;
       }
-
-      console.log(
-        '📡 [ChatListScreen] Getting or creating direct chat before navigation...',
-      );
-
       // Call the endpoint to get or create the direct chat
       const updatedChat = await createChat(participantId);
 
@@ -176,11 +171,6 @@ export function ChatListScreen() {
         Alert.alert('Erro', 'Não foi possível acessar o chat');
         return;
       }
-
-      console.log(
-        '✅ [ChatListScreen] Chat ready, navigating to ChatScreen...',
-      );
-
       // Set the current chat and navigate
       setCurrentChat(updatedChat);
       navigation.navigate('Chat', {
@@ -190,7 +180,6 @@ export function ChatListScreen() {
         userId: updatedChat.participants[0]?.id || '',
       });
     } catch (error) {
-      console.error('❌ [ChatListScreen] Error handling chat press:', error);
       Alert.alert('Erro', 'Erro ao acessar o chat');
     } finally {
       setLoadingChatId(null);

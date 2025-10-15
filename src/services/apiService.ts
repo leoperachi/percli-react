@@ -60,34 +60,17 @@ class ApiService {
     includeAuth: boolean = true,
     params?: Record<string, string | number>,
   ): Promise<ApiResponse<T>> {
-    console.log(
-      '================== API SERVICE REQUEST START ==================',
-    );
-    console.log(`🔥 [API SERVICE] Endpoint: ${endpoint}`);
-    console.log(`🔥 [API SERVICE] Options:`, JSON.stringify(options, null, 2));
-    console.log(`🔥 [API SERVICE] Include Auth: ${includeAuth}`);
-    console.log(`🔥 [API SERVICE] Params:`, params);
-    console.log(`🔥 [API SERVICE] Base URL: ${this.baseURL}`);
-    console.log(`🔥 [API SERVICE] Timeout: ${this.timeout}ms`);
-
     try {
-      console.log('🔥 [API SERVICE] STEP 1: Getting auth token...');
       // Add auth header if needed
       const headers: any = { ...options.headers };
       if (includeAuth) {
         const token = await this.getAccessToken();
-        console.log(
-          `🔥 [API SERVICE] Token retrieved: ${token ? 'YES' : 'NO'}`,
-        );
+
         if (token) {
           headers.Authorization = `Bearer ${token}`;
-          console.log(`🔥 [API SERVICE] Authorization header added`);
         }
-      } else {
-        console.log(`🔥 [API SERVICE] Skipping auth (includeAuth=false)`);
       }
 
-      console.log('🔥 [API SERVICE] STEP 2: Preparing Axios config...');
       // Prepare Axios config
       const axiosConfig: any = {
         url: endpoint,
@@ -98,47 +81,27 @@ class ApiService {
 
       // Add body data if present
       if (options.body) {
-        console.log('🔥 [API SERVICE] STEP 3: Processing body data...');
-        console.log('🔥 [API SERVICE] Original body:', options.body);
-        console.log('🔥 [API SERVICE] Body type:', typeof options.body);
-
         if (typeof options.body === 'string') {
           try {
             axiosConfig.data = JSON.parse(options.body);
-            console.log(
-              '🔥 [API SERVICE] Body parsed from string:',
-              axiosConfig.data,
-            );
           } catch (e) {
-            console.error('🔥 [API SERVICE] ERROR parsing body JSON:', e);
             axiosConfig.data = options.body;
           }
         } else {
           axiosConfig.data = options.body;
-          console.log('🔥 [API SERVICE] Body used as-is:', axiosConfig.data);
         }
       }
 
       // Add URL params if present
       if (params) {
         axiosConfig.params = params;
-        console.log('🔥 [API SERVICE] URL params added:', params);
       }
 
-      console.log('🔥 [API SERVICE] STEP 4: Final Axios config:');
-      console.log(JSON.stringify(axiosConfig, null, 2));
-
-      console.log('🔥 [API SERVICE] STEP 5: Making Axios request...');
       const fullUrl = `${this.baseURL}${endpoint}`;
-      console.log(`🔥 [API SERVICE] Full URL: ${fullUrl}`);
 
       const response: AxiosResponse = await this.axiosInstance.request(
         axiosConfig,
       );
-
-      console.log('🔥 [API SERVICE] STEP 6: Request successful!');
-      console.log('🔥 [API SERVICE] Raw response data:', response.data);
-      console.log('🔥 [API SERVICE] Response status:', response.status);
 
       // Handle server response format - convert to ApiResponse format
       const serverData = response.data;
@@ -175,40 +138,18 @@ class ApiService {
         };
       }
 
-      console.log(
-        '🔥 [API SERVICE] Formatted API response:',
-        JSON.stringify(apiResponse, null, 2),
-      );
-      console.log(
-        '================== API SERVICE REQUEST SUCCESS ==================',
-      );
-
       return apiResponse;
     } catch (error) {
-      console.log(
-        '================== API SERVICE REQUEST ERROR ==================',
-      );
-
       if (axios.isAxiosError(error)) {
-        console.log('[API SERVICE] This is an Axios error');
         const axiosError = error as AxiosError;
 
         // Handle 401 with token refresh only for authenticated requests
         if (axiosError.response?.status === 401) {
           if (includeAuth) {
-            console.log(
-              '🔄 [API SERVICE] 401 detected on authenticated request, attempting token refresh...',
-            );
             const refreshed = await this.refreshToken();
             if (refreshed) {
-              console.log(
-                '✅ [API SERVICE] Token refreshed successfully, retrying request...',
-              );
               return this.request(endpoint, options, includeAuth, params);
             } else {
-              console.log(
-                '[API SERVICE] Token refresh failed, clearing storage...',
-              );
               await this.clearStorage();
               return {
                 success: false,
@@ -216,9 +157,6 @@ class ApiService {
               };
             }
           } else {
-            console.log(
-              '🚫 [API SERVICE] 401 detected on non-authenticated request (register/login/etc)',
-            );
             // For non-authenticated requests (like register), treat 401 as a normal error
             const errorMessage = this.getAxiosErrorMessage(
               axiosError,
@@ -232,27 +170,16 @@ class ApiService {
         }
 
         const errorMessage = this.getAxiosErrorMessage(axiosError, endpoint);
-        console.log('[API SERVICE] Final error message:', errorMessage);
 
-        console.log(
-          '================== API SERVICE REQUEST ERROR END ==================',
-        );
         return {
           success: false,
           error: errorMessage,
         };
       } else {
-        console.log('[API SERVICE] This is NOT an Axios error');
-        console.error('[API SERVICE] Non-Axios error details:', error);
-
         const errorMessage = `❓ ERRO INESPERADO: ${
           error instanceof Error ? error.message : 'Erro desconhecido'
         }`;
-        console.log('[API SERVICE] Non-Axios error message:', errorMessage);
 
-        console.log(
-          '================== API SERVICE REQUEST ERROR END ==================',
-        );
         return {
           success: false,
           error: errorMessage,
@@ -402,13 +329,8 @@ class ApiService {
       if (data.data?.user) {
         // Store auth data if login response contains tokens
         if (data.data.tokens) {
-          console.log(
-            '🔥 [LOGIN] Login successful with tokens, storing auth data...',
-          );
           const stored = await hybridStorageService.setAuthData(data.data);
-          console.log('🔥 [LOGIN] Auth data storage result:', stored);
         } else {
-          console.log('🔥 [LOGIN] Login successful but no tokens in response');
         }
 
         return { success: true, data: data.data };
@@ -428,8 +350,6 @@ class ApiService {
     password: string,
     name: string,
   ): Promise<ApiResponse<AuthResponse>> {
-    console.log('🔥 [REGISTER] Starting registration process...');
-
     const response = await this.request<AuthResponse>(
       API_CONFIG.ENDPOINTS.AUTH.REGISTER,
       {
@@ -439,26 +359,10 @@ class ApiService {
       false, // Don't include auth header for registration
     );
 
-    console.log(
-      '🔥 [REGISTER] Response received:',
-      JSON.stringify(response, null, 2),
-    );
-
     // Store auth data if registration successful and data contains tokens
     if (response.success && response.data && response.data.tokens) {
-      console.log(
-        '🔥 [REGISTER] Registration successful with tokens, storing auth data...',
-      );
       const stored = await hybridStorageService.setAuthData(response.data);
-      console.log('🔥 [REGISTER] Auth data storage result:', stored);
     } else {
-      console.log(
-        '🔥 [REGISTER] Registration response:',
-        JSON.stringify(response, null, 2),
-      );
-      console.log(
-        '🔥 [REGISTER] Not storing auth data - no tokens in response',
-      );
     }
 
     return response;
@@ -518,21 +422,7 @@ class ApiService {
     city?: string;
     profilePhoto?: string; // base64 string
   }): Promise<ApiResponse> {
-    console.log('🔥 [UPDATE PROFILE] Starting profile update with photo...');
-    console.log(
-      '🔥 [UPDATE PROFILE] Profile data keys:',
-      Object.keys(profileData),
-    );
-    console.log(
-      '🔥 [UPDATE PROFILE] Has profilePhoto:',
-      !!profileData.profilePhoto,
-    );
-
     if (profileData.profilePhoto) {
-      console.log(
-        '🔥 [UPDATE PROFILE] Photo size (chars):',
-        profileData.profilePhoto.length,
-      );
     }
 
     return this.request(API_CONFIG.ENDPOINTS.USER.UPDATE_PROFILE, {
@@ -606,10 +496,6 @@ class ApiService {
   }
 
   async getOrCreateDirectChat(userId: string): Promise<ApiResponse> {
-    console.log(
-      '🔥 [API SERVICE] Getting or creating direct chat with user:',
-      userId,
-    );
     return this.request(
       API_CONFIG.ENDPOINTS.CHATS.GET_OR_CREATE_DIRECT.replace(
         ':userId',
@@ -704,10 +590,6 @@ class ApiService {
 
   // Test method that replicates EXACT Postman request
   async testPostmanLogin(): Promise<any> {
-    console.log(
-      '================== POSTMAN REPLICA TEST START ==================',
-    );
-
     try {
       // Exact same request as Postman
       const url = `${ENV.API_BASE_URL}/auth/login`;
@@ -716,14 +598,7 @@ class ApiService {
         password: 'admin123',
       };
 
-      console.log('🎯 [POSTMAN REPLICA] URL:', url);
-      console.log(
-        '🎯 [POSTMAN REPLICA] Payload:',
-        JSON.stringify(payload, null, 2),
-      );
-
       // Method 1: Using fetch (like Postman)
-      console.log('🎯 [POSTMAN REPLICA] Testing with FETCH...');
 
       const fetchResponse = await fetch(url, {
         method: 'POST',
@@ -734,22 +609,12 @@ class ApiService {
         body: JSON.stringify(payload),
       });
 
-      console.log(
-        '🎯 [POSTMAN REPLICA] Fetch Response Status:',
-        fetchResponse.status,
-      );
-      console.log('🎯 [POSTMAN REPLICA] Fetch Response OK:', fetchResponse.ok);
-
       const fetchText = await fetchResponse.text();
-      console.log('🎯 [POSTMAN REPLICA] Fetch Response Text:', fetchText);
 
       let fetchData;
       try {
         fetchData = JSON.parse(fetchText);
-        console.log('🎯 [POSTMAN REPLICA] Fetch Response JSON:', fetchData);
-      } catch (e) {
-        console.log('🎯 [POSTMAN REPLICA] Fetch Response NOT JSON:', e);
-      }
+      } catch (e) {}
 
       return {
         success: fetchResponse.ok,
@@ -760,7 +625,6 @@ class ApiService {
         payload,
       };
     } catch (error) {
-      console.error('🎯 [POSTMAN REPLICA] ERROR:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
