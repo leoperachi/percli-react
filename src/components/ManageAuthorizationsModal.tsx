@@ -41,13 +41,6 @@ export const ManageAuthorizationsModal: React.FC<
   >(new Set());
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (visible) {
-      loadAllAuthorizations();
-      loadCurrentAuthorizations();
-    }
-  }, [visible, loadAllAuthorizations, loadCurrentAuthorizations]);
-
   const loadAllAuthorizations = useCallback(async () => {
     try {
       setLoading(true);
@@ -56,8 +49,6 @@ export const ManageAuthorizationsModal: React.FC<
         {
           id: 10,
           father: 'Security',
-          totalMenus: 8,
-          createdAt: '2025-09-23T21:29:38.971Z',
           children: [
             {
               resource: 'users',
@@ -181,6 +172,13 @@ export const ManageAuthorizationsModal: React.FC<
     });
     setSelectedAuthorizations(selected);
   }, [currentAuthorizations]);
+
+  useEffect(() => {
+    if (visible) {
+      loadAllAuthorizations();
+      loadCurrentAuthorizations();
+    }
+  }, [visible, loadAllAuthorizations, loadCurrentAuthorizations]);
 
   const handleToggleAuthorization = (authorizationKey: string) => {
     const newSelected = new Set(selectedAuthorizations);

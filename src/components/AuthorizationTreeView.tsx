@@ -7,53 +7,47 @@ interface AuthorizationTreeViewProps {
   authorizations: Authorization[];
   selectedAuthorizations: Set<string>;
   onToggleAuthorization: (authorizationKey: string) => void;
+  onAddAuthorization?: (resource: string) => void;
+  onRemoveAuthorization?: (authorizationKey: string) => void;
   readonly?: boolean;
 }
 
 interface TreeNodeProps {
   authorization: Authorization;
-  selectedAuthorizations: Set<string>;
-  onToggleAuthorization: (authorizationKey: string) => void;
+  onAddAuthorization?: (resource: string) => void;
+  onRemoveAuthorization?: (authorizationKey: string) => void;
   readonly?: boolean;
 }
 
 interface ResourceNodeProps {
   resource: AuthorizationResource;
-  selectedAuthorizations: Set<string>;
-  onToggleAuthorization: (authorizationKey: string) => void;
+  onAddAuthorization?: (resource: string) => void;
+  onRemoveAuthorization?: (authorizationKey: string) => void;
   readonly?: boolean;
 }
 
 interface MenuNodeProps {
   menu: Menu;
-  selectedAuthorizations: Set<string>;
-  onToggleAuthorization: (authorizationKey: string) => void;
+  onRemoveAuthorization?: (authorizationKey: string) => void;
   readonly?: boolean;
 }
 
 const MenuNode: React.FC<MenuNodeProps> = ({
   menu,
-  selectedAuthorizations,
-  onToggleAuthorization,
+  onRemoveAuthorization,
   readonly = false,
 }) => {
   const { theme } = useTheme();
   const authorizationKey = `${menu.resource}:${menu.action}`;
-  const isSelected = selectedAuthorizations.has(authorizationKey);
 
-  const handleToggle = () => {
-    if (!readonly) {
-      onToggleAuthorization(authorizationKey);
+  const handleRemove = () => {
+    if (onRemoveAuthorization) {
+      onRemoveAuthorization(authorizationKey);
     }
   };
 
   return (
-    <TouchableOpacity
-      style={[styles.menuNode, { borderLeftColor: theme.colors.border }]}
-      onPress={handleToggle}
-      disabled={readonly}
-      activeOpacity={readonly ? 1 : 0.7}
-    >
+    <View style={[styles.menuNode, { borderLeftColor: theme.colors.border }]}>
       <View style={styles.menuContent}>
         <View style={styles.menuInfo}>
           <Text style={[styles.menuName, { color: theme.colors.text }]}>
@@ -73,35 +67,43 @@ const MenuNode: React.FC<MenuNodeProps> = ({
             {menu.resource} • {menu.action}
           </Text>
         </View>
-        {!readonly && (
-          <View
-            style={[
-              styles.checkbox,
-              isSelected && {
-                backgroundColor: theme.colors.primary || '#007AFF',
-              },
-            ]}
+        {!readonly && onRemoveAuthorization && (
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={handleRemove}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            {isSelected && <Text style={styles.checkmark}>✓</Text>}
-          </View>
+            <Text
+              style={[
+                styles.removeIcon,
+                { color: theme.colors.error || '#EF4444' },
+              ]}
+            >
+              🗑️
+            </Text>
+          </TouchableOpacity>
         )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
 const ResourceNode: React.FC<ResourceNodeProps> = ({
   resource,
-  selectedAuthorizations,
-  onToggleAuthorization,
+  onAddAuthorization,
+  onRemoveAuthorization,
   readonly = false,
 }) => {
   const { theme } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
   const handleToggle = () => {
-    if (!readonly) {
-      setExpanded(!expanded);
+    setExpanded(!expanded);
+  };
+
+  const handleAdd = () => {
+    if (onAddAuthorization) {
+      onAddAuthorization(resource.resource);
     }
   };
 
@@ -113,17 +115,34 @@ const ResourceNode: React.FC<ResourceNodeProps> = ({
           { borderLeftColor: theme.colors.border },
         ]}
         onPress={handleToggle}
-        disabled={readonly}
-        activeOpacity={readonly ? 1 : 0.7}
+        activeOpacity={0.7}
       >
         <Text style={[styles.resourceName, { color: theme.colors.text }]}>
           {resource.resource}
         </Text>
-        <Text
-          style={[styles.expandIcon, { color: theme.colors.textSecondary }]}
-        >
-          {expanded ? '▼' : '▶'}
-        </Text>
+        <View style={styles.resourceActions}>
+          {!readonly && onAddAuthorization && (
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAdd}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text
+                style={[
+                  styles.addIcon,
+                  { color: theme.colors.primary || '#007AFF' },
+                ]}
+              >
+                +
+              </Text>
+            </TouchableOpacity>
+          )}
+          <Text
+            style={[styles.expandIcon, { color: theme.colors.textSecondary }]}
+          >
+            {expanded ? '▼' : '▶'}
+          </Text>
+        </View>
       </TouchableOpacity>
 
       {expanded && (
@@ -132,8 +151,7 @@ const ResourceNode: React.FC<ResourceNodeProps> = ({
             <MenuNode
               key={menu.id}
               menu={menu}
-              selectedAuthorizations={selectedAuthorizations}
-              onToggleAuthorization={onToggleAuthorization}
+              onRemoveAuthorization={onRemoveAuthorization}
               readonly={readonly}
             />
           ))}
@@ -145,17 +163,15 @@ const ResourceNode: React.FC<ResourceNodeProps> = ({
 
 const TreeNode: React.FC<TreeNodeProps> = ({
   authorization,
-  selectedAuthorizations,
-  onToggleAuthorization,
+  onAddAuthorization,
+  onRemoveAuthorization,
   readonly = false,
 }) => {
   const { theme } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
   const handleToggle = () => {
-    if (!readonly) {
-      setExpanded(!expanded);
-    }
+    setExpanded(!expanded);
   };
 
   return (
@@ -166,8 +182,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           { borderLeftColor: theme.colors.primary || '#007AFF' },
         ]}
         onPress={handleToggle}
-        disabled={readonly}
-        activeOpacity={readonly ? 1 : 0.7}
+        activeOpacity={0.7}
       >
         <View style={styles.authInfo}>
           <Text style={[styles.authName, { color: theme.colors.text }]}>
@@ -176,7 +191,11 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           <Text
             style={[styles.authCount, { color: theme.colors.textSecondary }]}
           >
-            {authorization.totalMenus} menus
+            {authorization.children.reduce(
+              (total, resource) => total + resource.menus.length,
+              0,
+            )}{' '}
+            menus
           </Text>
         </View>
         <Text
@@ -192,8 +211,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             <ResourceNode
               key={`${authorization.id}-${index}`}
               resource={resource}
-              selectedAuthorizations={selectedAuthorizations}
-              onToggleAuthorization={onToggleAuthorization}
+              onAddAuthorization={onAddAuthorization}
+              onRemoveAuthorization={onRemoveAuthorization}
               readonly={readonly}
             />
           ))}
@@ -205,8 +224,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({
 
 export const AuthorizationTreeView: React.FC<AuthorizationTreeViewProps> = ({
   authorizations,
-  selectedAuthorizations,
-  onToggleAuthorization,
+  onAddAuthorization,
+  onRemoveAuthorization,
   readonly = false,
 }) => {
   const { theme } = useTheme();
@@ -217,8 +236,8 @@ export const AuthorizationTreeView: React.FC<AuthorizationTreeViewProps> = ({
         <TreeNode
           key={authorization.id}
           authorization={authorization}
-          selectedAuthorizations={selectedAuthorizations}
-          onToggleAuthorization={onToggleAuthorization}
+          onAddAuthorization={onAddAuthorization}
+          onRemoveAuthorization={onRemoveAuthorization}
           readonly={readonly}
         />
       ))}
@@ -310,19 +329,22 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontStyle: 'italic',
   },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: '#ccc',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
+  removeButton: {
+    padding: 4,
   },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 12,
+  removeIcon: {
+    fontSize: 16,
+  },
+  resourceActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  addButton: {
+    padding: 4,
+  },
+  addIcon: {
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });

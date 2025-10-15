@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, ReactNode, useEffect } fr
 import { AppContextType, User, LoadingState, MessageState } from '../types';
 import apiService from '../services/apiService';
 import googleAuthService from '../services/googleAuthService';
+import { socketService } from '../services/socketService';
 
 interface AppState {
   user: User | null;
@@ -316,6 +317,10 @@ export function AppProvider({ children }: AppProviderProps) {
 
   const logout = async () => {
     try {
+      console.log('🔌 [AppContext] Logging out - disconnecting socket...');
+      // Disconnect socket before clearing user data
+      socketService.disconnect();
+
       // Call logout API and clear secure storage
       await apiService.logout();
       dispatch({ type: 'LOGOUT' });
@@ -328,7 +333,8 @@ export function AppProvider({ children }: AppProviderProps) {
         }
       });
     } catch (error) {
-      // Even if logout API fails, clear local data
+      // Even if logout API fails, clear local data and disconnect socket
+      socketService.disconnect();
       dispatch({ type: 'LOGOUT' });
       dispatch({
         type: 'SET_MESSAGE',

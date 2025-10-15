@@ -30,6 +30,7 @@ export function EditProfileScreen() {
   const navigation = useNavigation();
   const { user, logout, updateUser } = useAppContext();
   const { theme } = useTheme();
+  const isDarkMode = theme.isDark;
 
   // Form state
   const [aboutUs, setAboutUs] = useState('');
@@ -246,12 +247,12 @@ export function EditProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header Section - Verde com curvatura */}
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#1C1C1E' : '#E5E5E5' }]}>
+      {/* Header Section */}
+      <View style={[styles.header, { backgroundColor: isDarkMode ? '#1C1C1E' : '#E5E5E5' }]}>
         <SafeAreaView>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={styles.backButtonText}>‹</Text>
+            <Text style={[styles.backButtonText, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>‹</Text>
           </TouchableOpacity>
 
           <View style={styles.profileSection}>
@@ -274,41 +275,30 @@ export function EditProfileScreen() {
               </View>
             </TouchableOpacity>
 
-            <Text style={styles.userName}>{user?.name || 'Arif Çağlar'}</Text>
-            <Text style={styles.userEmail}>
+            <Text style={[styles.userName, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+              {user?.name || 'Arif Çağlar'}
+            </Text>
+            <Text style={[styles.userEmail, { color: isDarkMode ? '#B0B0B0' : '#666666' }]}>
               {user?.email || 'support@mobiroller.com'}
             </Text>
           </View>
         </SafeAreaView>
       </View>
 
-      {/* White content area */}
-      <View
-        style={[
-          styles.contentArea,
-          { backgroundColor: theme.colors.background },
-        ]}
-      >
+      {/* Content area */}
+      <View style={[styles.contentArea, { backgroundColor: isDarkMode ? '#2C2C2E' : '#FFFFFF' }]}>
         <ScrollView
           style={styles.formContainer}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={[styles.formTitle, { color: theme.colors.text }]}>
-            Profile Informations
-          </Text>
-
           <View style={styles.inputContainer}>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: '#FFFFFF',
-                  borderColor: '#E5E5E5',
-                  color: theme.colors.text,
-                },
-              ]}
+              style={[styles.input, {
+                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                color: isDarkMode ? '#000000' : '#000000'
+              }]}
               placeholder="About Us"
-              placeholderTextColor="#B0B0B0"
+              placeholderTextColor="#999999"
               value={aboutUs}
               onChangeText={setAboutUs}
               multiline
@@ -317,16 +307,12 @@ export function EditProfileScreen() {
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: '#FFFFFF',
-                  borderColor: '#E5E5E5',
-                  color: theme.colors.text,
-                },
-              ]}
+              style={[styles.input, {
+                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                color: isDarkMode ? '#000000' : '#000000'
+              }]}
               placeholder="Phone No"
-              placeholderTextColor="#B0B0B0"
+              placeholderTextColor="#999999"
               value={phoneNo}
               onChangeText={setPhoneNo}
               keyboardType="phone-pad"
@@ -335,16 +321,12 @@ export function EditProfileScreen() {
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: '#FFFFFF',
-                  borderColor: '#E5E5E5',
-                  color: theme.colors.text,
-                },
-              ]}
+              style={[styles.input, {
+                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                color: isDarkMode ? '#000000' : '#000000'
+              }]}
               placeholder="Gender"
-              placeholderTextColor="#B0B0B0"
+              placeholderTextColor="#999999"
               value={gender}
               onChangeText={setGender}
             />
@@ -352,16 +334,12 @@ export function EditProfileScreen() {
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: '#FFFFFF',
-                  borderColor: '#E5E5E5',
-                  color: theme.colors.text,
-                },
-              ]}
+              style={[styles.input, {
+                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                color: isDarkMode ? '#000000' : '#000000'
+              }]}
               placeholder="City"
-              placeholderTextColor="#B0B0B0"
+              placeholderTextColor="#999999"
               value={city}
               onChangeText={setCity}
             />
@@ -385,7 +363,9 @@ export function EditProfileScreen() {
             style={styles.deleteButton}
             onPress={handleDeleteAccount}
           >
-            <Text style={styles.deleteButtonText}>Delete Account</Text>
+            <Text style={[styles.deleteButtonText, { color: isDarkMode ? '#B0B0B0' : '#666666' }]}>
+              Delete Account
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -396,11 +376,11 @@ export function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5', // Cinza claro
+    backgroundColor: '#1C1C1E', // Dark background
   },
   header: {
-    backgroundColor: '#F5F5F5',
-    paddingBottom: 60,
+    backgroundColor: '#1C1C1E', // Dark header
+    paddingBottom: 30,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     position: 'relative',
@@ -412,7 +392,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   backButtonText: {
-    color: '#333333',
+    color: '#FFFFFF', // White back button
     fontSize: 28,
     fontWeight: '300',
   },
@@ -427,41 +407,41 @@ const styles = StyleSheet.create({
   },
   profileImage: {
     borderWidth: 4,
-    borderColor: '#FFFFFF',
+    borderColor: '#2C2C2E', // Dark border for profile image
   },
   cameraIcon: {
     position: 'absolute',
     bottom: 5,
     right: 5,
-    backgroundColor: '#333333',
+    backgroundColor: '#FFFFFF', // White camera icon background
     borderRadius: 18,
     width: 36,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#F5F5F5',
+    borderColor: '#1C1C1E', // Dark border
   },
   cameraIconText: {
-    color: '#FFFFFF',
+    color: '#000000', // Black camera emoji
     fontSize: 16,
   },
   userName: {
-    color: '#333333',
+    color: '#FFFFFF', // White username
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
   },
   userEmail: {
-    color: '#666666',
+    color: '#B0B0B0', // Light gray email
     fontSize: 16,
     textAlign: 'center',
   },
   contentArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    marginTop: -40, // Sobrepor um pouco o header
+    backgroundColor: '#2C2C2E', // Dark content area
+    marginTop: -40, // Overlap header slightly
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     paddingTop: 20,
@@ -473,7 +453,7 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#FFFFFF',
     marginBottom: 35,
     marginTop: 20,
   },
@@ -481,18 +461,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#E5E5E5',
+    backgroundColor: '#FFFFFF', // White input fields for contrast
+    borderWidth: 0,
+    borderColor: 'transparent',
     borderRadius: 15,
     paddingHorizontal: 20,
     paddingVertical: 18,
     fontSize: 16,
-    color: '#000000',
+    color: '#000000', // Black text in inputs
     minHeight: 60,
   },
   saveButton: {
-    backgroundColor: '#2C5530', // Verde escuro da imagem
+    backgroundColor: '#2C5530', // Green save button
     borderRadius: 30,
     paddingVertical: 18,
     alignItems: 'center',
@@ -516,7 +496,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 16,
-    color: '#999999',
+    color: '#B0B0B0', // Light gray for delete text
     fontWeight: '500',
   },
 });

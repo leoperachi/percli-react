@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,121 +11,99 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
+import { socketService } from '../services/socketService';
+import { ProfilePhoto } from './profilePhoto';
+
+interface RecentConversation {
+  userId: string;
+  name: string;
+  email: string;
+  profilePicture?: string;
+  unreadCount: number;
+  lastMessageAt?: Date;
+}
 
 interface RightDrawerProps {
   onClose: () => void;
 }
 
-interface RecentUser {
-  id: string;
-  name: string;
-  email: string;
-  profilePhoto?: string;
-  lastMessageTime?: string;
-  isOnline?: boolean;
-}
-
 export function RightDrawer({ onClose }: RightDrawerProps) {
   const { theme } = useTheme();
   const navigation = useNavigation();
+  const [conversations, setConversations] = useState<RecentConversation[]>([]);
+  const [loading, setLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
 
-  // Load recent users (for now, we'll load all users as mock recent conversations)
-  const loadRecentUsers = useCallback(async () => {
-    console.log('🔥 [RightDrawer] Loading recent users...');
-    setLoadingUsers(true);
+  // Listen for socket events
+  useEffect(() => {
+    console.log('👥 [RightDrawer] Setting up socket listeners...');
 
-    try {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+    // Connect socket if not connected
+    if (!socketService.isConnected()) {
+      socketService.connect();
+    }
 
-      // For now, we'll use mock data. In a real app, this would be recent chat participants
-      const mockUsers: RecentUser[] = [
-        {
-          id: '2',
-          name: 'João Silva',
-          email: 'joao@example.com',
-          lastMessageTime: '2 min ago',
-          isOnline: true,
-        },
-        {
-          id: '3',
-          name: 'Maria Santos',
-          email: 'maria@example.com',
-          lastMessageTime: '1 hour ago',
-          isOnline: false,
-        },
-        {
-          id: '4',
-          name: 'Pedro Costa',
-          email: 'pedro@example.com',
-          lastMessageTime: '3 hours ago',
-          isOnline: true,
-        },
-        {
-          id: '5',
-          name: 'Ana Oliveira',
-          email: 'ana@example.com',
-          lastMessageTime: '1 day ago',
-          isOnline: false,
-        },
-        {
-          id: '6',
-          name: 'Carlos Ferreira',
-          email: 'carlos@example.com',
-          lastMessageTime: '2 days ago',
-          isOnline: true,
-        },
-      ];
+    const socket = socketService.getSocket();
+    if (socket) {
+      // Listen for recent conversations
+      const handleRecentConversations = (data: { conversations: RecentConversation[] }) => {
+        console.log('✅ [RightDrawer] Received recent conversations:', data.conversations?.length);
+        setConversations(data.conversations || []);
+        setLoading(false);
+      };
 
-      console.log('🔥 [RightDrawer] Mock users created:', mockUsers);
-      console.log('🔥 [RightDrawer] Setting users to state...');
-      setRecentUsers(mockUsers);
-      console.log('🔥 [RightDrawer] Users set to state');
-    } catch (error) {
-      console.error('❌ [RightDrawer] Error loading recent users:', error);
-    } finally {
-      setLoadingUsers(false);
-      console.log(
-        '🔥 [RightDrawer] Loading finished, loadingUsers set to false',
-      );
+      socket.on('recent_conversations', handleRecentConversations);
+
+      // Request conversations manually
+      socketService.getRecentConversations();
+
+      // Cleanup
+      return () => {
+        console.log('🧹 [RightDrawer] Cleaning up socket listeners...');
+        socket.off('recent_conversations', handleRecentConversations);
+      };
+    } else {
+      setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadRecentUsers();
-  }, [loadRecentUsers]);
+  const handleConversationPress = (conversation: RecentConversation) => {
+    console.log('Opening chat with:', conversation.name);
+    onClose();
 
-  // Debug log to check state
-  useEffect(() => {
-    console.log(
-      '🔥 [RightDrawer] State update - loadingUsers:',
-      loadingUsers,
-      'recentUsers count:',
-      recentUsers.length,
-    );
-  }, [loadingUsers, recentUsers]);
-
-  const handleUserPress = (user: RecentUser) => {
-    // Navigate to chat with this user
-    console.log('Opening chat with user:', user.name);
-    onClose(); // Close the drawer
-
-    // Navigate directly to ChatScreen with user data
     try {
       navigation.navigate(
         'Chat' as never,
         {
-          chatId: `user_${user.id}`,
-          chatName: user.name,
-          userId: user.id,
+          chatId: `user_${conversation.userId}`,
+          chatName: conversation.name,
+          userId: conversation.userId,
         } as never,
       );
     } catch (error) {
       console.log('Navigation error:', error);
+    }
+  };
+
+  const formatTime = (date?: Date) => {
+    if (!date) return '';
+
+    const messageDate = new Date(date);
+    const now = new Date();
+    const diffInMs = now.getTime() - messageDate.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) {
+      return 'now';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes} min ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
     }
   };
 
@@ -161,7 +139,7 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
 
           {/* Scrollable Recent Conversations List */}
           <View style={styles.conversationsContainer}>
-            {loadingUsers ? (
+            {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color={theme.colors.primary} />
                 <Text
@@ -173,7 +151,7 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                   Loading conversations...
                 </Text>
               </View>
-            ) : recentUsers.length === 0 ? (
+            ) : conversations.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text
                   style={[
@@ -190,38 +168,38 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                 showsVerticalScrollIndicator={false}
                 nestedScrollEnabled={true}
               >
-                {recentUsers.map(user => {
-                  console.log('🔥 [RightDrawer] Rendering user:', user.name);
+                {conversations.map(conversation => {
+                  console.log('🔥 [RightDrawer] Rendering conversation:', conversation.name);
                   return (
                     <View
-                      key={user.id}
+                      key={conversation.userId}
                       style={[
                         styles.conversationItem,
                         { borderBottomColor: theme.colors.border },
                       ]}
                     >
                       <View style={styles.conversationAvatar}>
-                        <View
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            backgroundColor: '#6366F1',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Text style={{ color: 'white', fontSize: 16 }}>
-                            {user.name.charAt(0)}
-                          </Text>
-                        </View>
-                        {user.isOnline && (
-                          <View style={styles.onlineIndicator} />
+                        <ProfilePhoto
+                          imageBase64={conversation.profilePicture}
+                          userName={conversation.name}
+                          size={40}
+                        />
+                        {conversation.unreadCount > 0 && (
+                          <View
+                            style={[
+                              styles.unreadBadge,
+                              { backgroundColor: theme.colors.primary || '#007AFF' },
+                            ]}
+                          >
+                            <Text style={styles.unreadText}>
+                              {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
+                            </Text>
+                          </View>
                         )}
                       </View>
                       <TouchableOpacity
                         style={styles.conversationContent}
-                        onPress={() => handleUserPress(user)}
+                        onPress={() => handleConversationPress(conversation)}
                       >
                         <Text
                           style={[
@@ -230,7 +208,7 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                           ]}
                           numberOfLines={1}
                         >
-                          {user.name}
+                          {conversation.name}
                         </Text>
                         <Text
                           style={[
@@ -239,16 +217,16 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                           ]}
                           numberOfLines={1}
                         >
-                          {user.email}
+                          {conversation.email}
                         </Text>
-                        {user.lastMessageTime && (
+                        {conversation.lastMessageAt && (
                           <Text
                             style={[
                               styles.conversationTime,
                               { color: theme.colors.textSecondary },
                             ]}
                           >
-                            {user.lastMessageTime}
+                            {formatTime(conversation.lastMessageAt)}
                           </Text>
                         )}
                       </TouchableOpacity>
@@ -538,6 +516,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
     borderWidth: 2,
     borderColor: '#FFFFFF',
+  },
+  unreadBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  unreadText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   conversationContent: {
     flex: 1,

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Image,
   TextInput,
   Modal,
 } from 'react-native';
@@ -14,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { MainLayout } from '../components/MainLayout';
+import { ProfilePhoto } from '../components/profilePhoto';
 
 export function ProfileScreen() {
   const navigation = useNavigation();
@@ -21,7 +21,7 @@ export function ProfileScreen() {
   const { theme } = useTheme();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editedName, setEditedName] = useState(user?.name || '');
-  const [editedRole, setEditedRole] = useState('Analyzer');
+  const [editedRole, setEditedRole] = useState(user?.role?.name || 'Analyzer');
 
   const handleSaveProfile = () => {
     // Here you would call an API to update the profile
@@ -39,8 +39,10 @@ export function ProfileScreen() {
         {/* Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            <Image
-              source={require('../assets/images/illustrations/user.png')}
+            <ProfilePhoto
+              imageBase64={user?.profilePhoto}
+              userName={user?.name || 'User'}
+              size={80}
               style={styles.profileImage}
             />
             <View
@@ -55,10 +57,10 @@ export function ProfileScreen() {
 
           <View style={styles.profileInfo}>
             <Text style={[styles.userName, { color: theme.colors.text }]}>
-              {user?.name || 'Angelica Jackson'}
+              {user?.name || 'Administrador'}
             </Text>
             <Text style={[styles.userRole, { color: theme.colors.secondary }]}>
-              Analyzer
+              {user?.role?.name || 'Analyzer'}
             </Text>
             <TouchableOpacity
               style={styles.changeProfileButton}

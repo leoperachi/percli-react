@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,18 +13,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { MainLayout } from '../components/MainLayout';
 import { ProfilePhoto } from '../components/profilePhoto';
 import apiService from '../services/apiService';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: {
-    name: string;
-  };
-  isActive: boolean;
-  profilePicture?: string;
-  createdAt: string;
-}
+import type { User } from '../types';
 
 export function UsersScreen() {
   const navigation = useNavigation();
@@ -32,7 +21,7 @@ export function UsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -49,11 +38,11 @@ export function UsersScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -63,7 +52,7 @@ export function UsersScreen() {
     Alert.alert(
       'User',
       `Name: ${user.name}\nEmail: ${user.email}\nRole: ${
-        user.role.name
+        user.roleName || user.role?.name || 'N/A'
       }\nStatus: ${user.isActive ? 'Active' : 'Inactive'}`,
     );
   };
@@ -118,7 +107,7 @@ export function UsersScreen() {
             >
               <View style={styles.userInfo}>
                 <ProfilePhoto
-                  imageBase64={user.profilePicture}
+                  imageBase64={user.profilePicture || user.profilePhoto}
                   userName={user.name}
                   size={48}
                 />
@@ -140,7 +129,7 @@ export function UsersScreen() {
                       { color: theme.colors.textSecondary },
                     ]}
                   >
-                    Role: {user.role.name}
+                    Role: {user.roleName || user.role?.name || 'N/A'}
                   </Text>
                 </View>
               </View>

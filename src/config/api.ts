@@ -36,6 +36,19 @@ export const API_CONFIG = {
       LIST: '/roles/',
     },
 
+    // Chat endpoints
+    CHATS: {
+      LIST: '/chats/',
+      CREATE: '/chats/',
+      GET_BY_ID: '/chats/:chatId',
+      GET_OR_CREATE_DIRECT: '/chats/direct/:userId',
+      UPDATE: '/chats/:chatId',
+      UNREAD_COUNT: '/chats/unread-count',
+      MESSAGES: '/chats/:chatId/messages',
+      SEND_MESSAGE: '/chats/:chatId/messages',
+      MARK_READ: '/chats/messages/mark-read',
+    },
+
     // Add more endpoints as needed
     // PRODUCTS: {
     //   LIST: '/api/products',

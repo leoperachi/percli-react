@@ -23,9 +23,10 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 interface ChatItemProps {
   chat: Chat;
   onPress: (chat: Chat) => void;
+  isLoading?: boolean;
 }
 
-function ChatItem({ chat, onPress }: ChatItemProps) {
+function ChatItem({ chat, onPress, isLoading }: ChatItemProps) {
   const { theme } = useTheme();
 
   const participant = chat.participants[0];
@@ -87,12 +88,15 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
           >
             {displayName}
           </Text>
-          {chat.lastMessage && (
+          {chat.lastMessage && !isLoading && (
             <Text
               style={[styles.timestamp, { color: theme.colors.textSecondary }]}
             >
               {formatTime(chat.lastActivity)}
             </Text>
+          )}
+          {isLoading && (
+            <ActivityIndicator size="small" color={theme.colors.primary} />
           )}
         </View>
 
@@ -108,10 +112,10 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
             ]}
             numberOfLines={1}
           >
-            {chat.lastMessage?.text || 'Nenhuma mensagem'}
+            {isLoading ? 'Carregando...' : chat.lastMessage?.text || 'Nenhuma mensagem'}
           </Text>
 
-          {chat.unreadCount > 0 && (
+          {chat.unreadCount > 0 && !isLoading && (
             <View
               style={[
                 styles.unreadBadge,
@@ -134,20 +138,55 @@ function ChatItem({ chat, onPress }: ChatItemProps) {
 export function ChatListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
-  const { chats, loadChats, loading, error, setCurrentChat } = useChatContext();
+  const { chats, loadChats, loading, error, setCurrentChat, createChat } = useChatContext();
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingChatId, setLoadingChatId] = useState<string | null>(null);
 
   useEffect(() => {
     loadChats();
-  }, []);
+  }, [loadChats]);
 
   const handleBackPress = () => {
     navigation.goBack();
   };
 
-  const handleChatPress = (chat: Chat) => {
-    setCurrentChat(chat);
-    navigation.navigate('Chat');
+  const handleChatPress = async (chat: Chat) => {
+    try {
+      setLoadingChatId(chat.id);
+
+      // Get the participant user ID
+      const participantId = chat.participants[0]?.id;
+
+      if (!participantId) {
+        Alert.alert('Erro', 'ID do usuário não encontrado');
+        return;
+      }
+
+      console.log('📡 [ChatListScreen] Getting or creating direct chat before navigation...');
+
+      // Call the endpoint to get or create the direct chat
+      const updatedChat = await createChat(participantId);
+
+      if (!updatedChat) {
+        Alert.alert('Erro', 'Não foi possível acessar o chat');
+        return;
+      }
+
+      console.log('✅ [ChatListScreen] Chat ready, navigating to ChatScreen...');
+
+      // Set the current chat and navigate
+      setCurrentChat(updatedChat);
+      navigation.navigate('Chat', {
+        chatId: updatedChat.id,
+        chatName: updatedChat.chatName || updatedChat.participants[0]?.name || 'Chat',
+        userId: updatedChat.participants[0]?.id || '',
+      });
+    } catch (error) {
+      console.error('❌ [ChatListScreen] Error handling chat press:', error);
+      Alert.alert('Erro', 'Erro ao acessar o chat');
+    } finally {
+      setLoadingChatId(null);
+    }
   };
 
   const handleRefresh = async () => {
@@ -168,7 +207,11 @@ export function ChatListScreen() {
   };
 
   const renderChatItem = ({ item }: { item: Chat }) => (
-    <ChatItem chat={item} onPress={handleChatPress} />
+    <ChatItem
+      chat={item}
+      onPress={handleChatPress}
+      isLoading={loadingChatId === item.id}
+    />
   );
 
   const renderEmptyState = () => (
@@ -242,13 +285,7 @@ export function ChatListScreen() {
   }
 
   return (
-    <MainLayout
-      title="Conversas"
-      leftIcon="back"
-      onLeftPress={handleBackPress}
-      rightIcon="+"
-      onRightPress={handleNewChat}
-    >
+    <MainLayout title="Conversas" leftIcon="back" onLeftPress={handleBackPress}>
       <FlatList
         data={chats}
         renderItem={renderChatItem}
@@ -316,7 +353,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyTitle: {
-    fontSize: 48,
+    fontSize: 28,
     marginBottom: 8,
   },
   emptySubtitle: {
@@ -330,7 +367,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   newChatButtonText: {
-    color: '#FFFFFF',
+    color: '#000',
     fontSize: 16,
     fontWeight: '600',
   },

@@ -1,28 +1,42 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { MainLayout } from '../components/MainLayout';
-import apiService from '../services/apiService';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import { AuthorizationTreeView } from '../components/AuthorizationTreeView';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type RoleDetailsRouteProp = RouteProp<RootStackParamList, 'RoleDetails'>;
 
-interface Authorization {
+interface Menu {
   id: number;
   name: string;
   description: string;
   resource: string;
   action: string;
+  uplevel: number;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Resource {
+  resource: string;
+  menus: Menu[];
+}
+
+interface Authorization {
+  id: number;
+  father: string;
+  children: Resource[];
 }
 
 interface RoleDetails {
@@ -49,20 +63,109 @@ export function RoleDetailsScreen() {
     try {
       setLoading(true);
 
-      const response = await apiService.getRoleDetails(roleId);
+      // Mock data with hierarchical structure
+      const mockRoleDetails: RoleDetails = {
+        id: roleId,
+        name: roleName,
+        description: `${roleName} role with specific permissions`,
+        isActive: true,
+        createdAt: '2025-09-23T21:29:38.971Z',
+        updatedAt: '2025-09-23T21:29:38.971Z',
+        usersCount: 1,
+        authorizations: [
+          {
+            id: 10,
+            father: 'Security',
+            children: [
+              {
+                resource: 'users',
+                menus: [
+                  {
+                    id: 1,
+                    name: 'Read Users',
+                    description: 'View user information and lists',
+                    resource: 'users',
+                    action: 'read',
+                    uplevel: 10,
+                    isActive: true,
+                    createdAt: '2025-09-23T21:29:38.971Z',
+                    updatedAt: '2025-09-23T21:29:38.971Z',
+                  },
+                  {
+                    id: 2,
+                    name: 'Create Users',
+                    description: 'Create new users',
+                    resource: 'users',
+                    action: 'create',
+                    uplevel: 10,
+                    isActive: true,
+                    createdAt: '2025-09-23T21:29:38.971Z',
+                    updatedAt: '2025-09-23T21:29:38.971Z',
+                  },
+                  {
+                    id: 3,
+                    name: 'Update Users',
+                    description: 'Update user information',
+                    resource: 'users',
+                    action: 'update',
+                    uplevel: 10,
+                    isActive: true,
+                    createdAt: '2025-09-23T21:29:38.971Z',
+                    updatedAt: '2025-09-23T21:29:38.971Z',
+                  },
+                  {
+                    id: 4,
+                    name: 'Delete Users',
+                    description: 'Delete user accounts',
+                    resource: 'users',
+                    action: 'delete',
+                    uplevel: 10,
+                    isActive: true,
+                    createdAt: '2025-09-23T21:29:38.971Z',
+                    updatedAt: '2025-09-23T21:29:38.971Z',
+                  },
+                ],
+              },
+              {
+                resource: 'roles',
+                menus: [
+                  {
+                    id: 5,
+                    name: 'Read Roles',
+                    description: 'View role information and lists',
+                    resource: 'roles',
+                    action: 'read',
+                    uplevel: 10,
+                    isActive: true,
+                    createdAt: '2025-09-23T21:29:38.971Z',
+                    updatedAt: '2025-09-23T21:29:38.971Z',
+                  },
+                  {
+                    id: 6,
+                    name: 'Create Roles',
+                    description: 'Create new roles',
+                    resource: 'roles',
+                    action: 'create',
+                    uplevel: 10,
+                    isActive: false,
+                    createdAt: '2025-09-23T21:29:38.971Z',
+                    updatedAt: '2025-09-23T21:29:38.971Z',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
-      if (response.success && response.data) {
-        setRoleDetails(response.data);
-      } else {
-        Alert.alert('Error', response.error || 'Failed to load role details');
-      }
+      setRoleDetails(mockRoleDetails);
     } catch (error) {
       console.error('Error loading role details:', error);
       Alert.alert('Error', 'Failed to load role details');
     } finally {
       setLoading(false);
     }
-  }, [roleId]);
+  }, [roleId, roleName]);
 
   useEffect(() => {
     loadRoleDetails();
@@ -80,27 +183,6 @@ export function RoleDetailsScreen() {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const getResourceColor = (resource: string) => {
-    const colors: { [key: string]: string } = {
-      users: '#3B82F6',
-      roles: '#10B981',
-      authorizations: '#F59E0B',
-      posts: '#8B5CF6',
-      comments: '#EF4444',
-    };
-    return colors[resource.toLowerCase()] || '#6B7280';
-  };
-
-  const getActionIcon = (action: string) => {
-    const icons: { [key: string]: string } = {
-      create: '➕',
-      read: '👁️',
-      update: '✏️',
-      delete: '🗑️',
-    };
-    return icons[action.toLowerCase()] || '🔹';
   };
 
   if (loading) {
@@ -228,85 +310,28 @@ export function RoleDetailsScreen() {
 
         {/* Authorizations Section */}
         <View style={styles.authorizationsSection}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { color: theme.colors.text },
-            ]}
-          >
-            Authorizations ({roleDetails.authorizations?.length || 0})
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+            Authorizations
           </Text>
 
-          {roleDetails.authorizations && roleDetails.authorizations.length > 0 ? (
-            <View style={styles.authorizationsList}>
-              {roleDetails.authorizations.map(auth => (
-                <View
-                  key={auth.id}
-                  style={[
-                    styles.authCard,
-                    {
-                      backgroundColor: theme.colors.surface,
-                      borderColor: theme.colors.border,
-                    },
-                  ]}
-                >
-                  <View style={styles.authHeader}>
-                    <View style={styles.authTitleRow}>
-                      <View
-                        style={[
-                          styles.resourceBadge,
-                          { backgroundColor: getResourceColor(auth.resource) },
-                        ]}
-                      >
-                        <Text style={styles.resourceText}>
-                          {auth.resource}
-                        </Text>
-                      </View>
-                      <View style={styles.actionBadge}>
-                        <Text style={styles.actionIcon}>
-                          {getActionIcon(auth.action)}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.actionText,
-                            { color: theme.colors.textSecondary },
-                          ]}
-                        >
-                          {auth.action}
-                        </Text>
-                      </View>
-                    </View>
-                    <View
-                      style={[
-                        styles.authStatusBadge,
-                        {
-                          backgroundColor: auth.isActive
-                            ? theme.colors.success || '#10B981'
-                            : theme.colors.error || '#EF4444',
-                        },
-                      ]}
-                    >
-                      <Text style={styles.authStatusText}>
-                        {auth.isActive ? 'Active' : 'Inactive'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <Text style={[styles.authName, { color: theme.colors.text }]}>
-                    {auth.name}
-                  </Text>
-
-                  <Text
-                    style={[
-                      styles.authDescription,
-                      { color: theme.colors.textSecondary },
-                    ]}
-                  >
-                    {auth.description}
-                  </Text>
-                </View>
-              ))}
-            </View>
+          {roleDetails.authorizations &&
+          roleDetails.authorizations.length > 0 ? (
+            <AuthorizationTreeView
+              authorizations={roleDetails.authorizations}
+              onAddAuthorization={resource => {
+                Alert.alert(
+                  'Add Authorization',
+                  `Add new authorization for ${resource} resource`,
+                );
+              }}
+              onRemoveAuthorization={authorizationKey => {
+                Alert.alert(
+                  'Remove Authorization',
+                  `Remove authorization: ${authorizationKey}`,
+                );
+              }}
+              readonly={false}
+            />
           ) : (
             <View style={styles.emptyState}>
               <Text
@@ -395,69 +420,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 16,
-  },
-  authorizationsList: {
-    gap: 12,
-  },
-  authCard: {
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  authHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  authTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-  },
-  resourceBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  resourceText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
-  actionBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  actionIcon: {
-    fontSize: 14,
-  },
-  actionText: {
-    fontSize: 12,
-    fontWeight: '500',
-    textTransform: 'capitalize',
-  },
-  authStatusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  authStatusText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  authName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  authDescription: {
-    fontSize: 14,
-    lineHeight: 20,
   },
   emptyState: {
     padding: 40,

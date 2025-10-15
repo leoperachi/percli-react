@@ -577,6 +577,59 @@ class ApiService {
     });
   }
 
+  // Chat methods
+  async getUserChats(page: number = 1, limit: number = 20): Promise<ApiResponse> {
+    return this.request(`${API_CONFIG.ENDPOINTS.CHATS.LIST}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
+  async getChatById(chatId: string): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.GET_BY_ID.replace(':chatId', chatId), {
+      method: 'GET',
+    });
+  }
+
+  async createChat(participantUserIds: string[], chatName?: string, chatType: 'direct' | 'group' = 'direct'): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.CREATE, {
+      method: 'POST',
+      body: JSON.stringify({ participantUserIds, chatName, chatType }),
+    });
+  }
+
+  async getOrCreateDirectChat(userId: string): Promise<ApiResponse> {
+    console.log('🔥 [API SERVICE] Getting or creating direct chat with user:', userId);
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.GET_OR_CREATE_DIRECT.replace(':userId', userId), {
+      method: 'GET',
+    });
+  }
+
+  async getChatMessages(chatId: string, page: number = 1, limit: number = 50): Promise<ApiResponse> {
+    return this.request(`${API_CONFIG.ENDPOINTS.CHATS.MESSAGES.replace(':chatId', chatId)}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
+  async sendChatMessage(chatId: string, content: string, messageType: 'text' | 'image' | 'file' = 'text', replyToId?: string): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.SEND_MESSAGE.replace(':chatId', chatId), {
+      method: 'POST',
+      body: JSON.stringify({ content, messageType, replyToId }),
+    });
+  }
+
+  async markMessagesAsRead(messageIds: string[]): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.MARK_READ, {
+      method: 'POST',
+      body: JSON.stringify({ messageIds }),
+    });
+  }
+
+  async getUnreadMessagesCount(): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.UNREAD_COUNT, {
+      method: 'GET',
+    });
+  }
+
   // Google Authentication - Authorization Code Flow
   async googleAuth(authorizationCode: string): Promise<ApiResponse<AuthResponse>> {
     try {
