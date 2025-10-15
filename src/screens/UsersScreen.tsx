@@ -9,11 +9,11 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../contexts/ThemeContext';
+import type { User } from '../types';
 import { MainLayout } from '../components/MainLayout';
 import { ProfilePhoto } from '../components/profilePhoto';
+import { useTheme } from '../contexts/ThemeContext';
 import apiService from '../services/apiService';
-import type { User } from '../types';
 
 export function UsersScreen() {
   const navigation = useNavigation();

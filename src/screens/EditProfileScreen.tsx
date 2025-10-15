@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -18,13 +18,13 @@ import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   launchImageLibrary,
-  MediaType,
-  ImagePickerResponse,
+  type MediaType,
+  type ImagePickerResponse,
 } from 'react-native-image-picker';
 import { ProfilePhoto } from '../components/profilePhoto';
 import apiService from '../services/apiService';
 
-const { width, height } = Dimensions.get('window');
+Dimensions.get('window');
 
 export function EditProfileScreen() {
   const navigation = useNavigation();
@@ -72,9 +72,9 @@ export function EditProfileScreen() {
   const convertImageToBase64 = (imageUri: string): Promise<string> => {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.onload = function () {
+      xhr.onload = () => {
         const reader = new FileReader();
-        reader.onloadend = function () {
+        reader.onloadend = () => {
           const base64 = reader.result as string;
           // Remove o prefixo "data:image/...;base64," para obter apenas o base64
           const base64Data = base64.split(',')[1];
@@ -126,8 +126,8 @@ export function EditProfileScreen() {
       } else if (response.errorMessage) {
         console.log('ImagePicker Error: ', response.errorMessage);
         Alert.alert('Erro', 'Erro ao selecionar a imagem');
-      } else if (response.assets && response.assets[0]) {
-        const asset = response.assets[0];
+      } else if (response.assets?.[0]) {
+        const asset = response.assets?.[0];
         console.log(
           '🔥 [DEBUG] Original image size:',
           asset.fileSize
@@ -247,12 +247,29 @@ export function EditProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#1C1C1E' : '#E5E5E5' }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? '#1C1C1E' : '#E5E5E5' },
+      ]}
+    >
       {/* Header Section */}
-      <View style={[styles.header, { backgroundColor: isDarkMode ? '#1C1C1E' : '#E5E5E5' }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: isDarkMode ? '#1C1C1E' : '#E5E5E5' },
+        ]}
+      >
         <SafeAreaView>
           <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={[styles.backButtonText, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>‹</Text>
+            <Text
+              style={[
+                styles.backButtonText,
+                { color: isDarkMode ? '#FFFFFF' : '#000000' },
+              ]}
+            >
+              ‹
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.profileSection}>
@@ -275,10 +292,20 @@ export function EditProfileScreen() {
               </View>
             </TouchableOpacity>
 
-            <Text style={[styles.userName, { color: isDarkMode ? '#FFFFFF' : '#000000' }]}>
+            <Text
+              style={[
+                styles.userName,
+                { color: isDarkMode ? '#FFFFFF' : '#000000' },
+              ]}
+            >
               {user?.name || 'Arif Çağlar'}
             </Text>
-            <Text style={[styles.userEmail, { color: isDarkMode ? '#B0B0B0' : '#666666' }]}>
+            <Text
+              style={[
+                styles.userEmail,
+                { color: isDarkMode ? '#B0B0B0' : '#666666' },
+              ]}
+            >
               {user?.email || 'support@mobiroller.com'}
             </Text>
           </View>
@@ -286,17 +313,25 @@ export function EditProfileScreen() {
       </View>
 
       {/* Content area */}
-      <View style={[styles.contentArea, { backgroundColor: isDarkMode ? '#2C2C2E' : '#FFFFFF' }]}>
+      <View
+        style={[
+          styles.contentArea,
+          { backgroundColor: isDarkMode ? '#2C2C2E' : '#FFFFFF' },
+        ]}
+      >
         <ScrollView
           style={styles.formContainer}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, {
-                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
-                color: isDarkMode ? '#000000' : '#000000'
-              }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                  color: isDarkMode ? '#000000' : '#000000',
+                },
+              ]}
               placeholder="About Us"
               placeholderTextColor="#999999"
               value={aboutUs}
@@ -307,10 +342,13 @@ export function EditProfileScreen() {
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, {
-                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
-                color: isDarkMode ? '#000000' : '#000000'
-              }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                  color: isDarkMode ? '#000000' : '#000000',
+                },
+              ]}
               placeholder="Phone No"
               placeholderTextColor="#999999"
               value={phoneNo}
@@ -321,10 +359,13 @@ export function EditProfileScreen() {
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, {
-                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
-                color: isDarkMode ? '#000000' : '#000000'
-              }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                  color: isDarkMode ? '#000000' : '#000000',
+                },
+              ]}
               placeholder="Gender"
               placeholderTextColor="#999999"
               value={gender}
@@ -334,10 +375,13 @@ export function EditProfileScreen() {
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, {
-                backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
-                color: isDarkMode ? '#000000' : '#000000'
-              }]}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: isDarkMode ? '#FFFFFF' : '#F5F5F5',
+                  color: isDarkMode ? '#000000' : '#000000',
+                },
+              ]}
               placeholder="City"
               placeholderTextColor="#999999"
               value={city}
@@ -363,7 +407,12 @@ export function EditProfileScreen() {
             style={styles.deleteButton}
             onPress={handleDeleteAccount}
           >
-            <Text style={[styles.deleteButtonText, { color: isDarkMode ? '#B0B0B0' : '#666666' }]}>
+            <Text
+              style={[
+                styles.deleteButtonText,
+                { color: isDarkMode ? '#B0B0B0' : '#666666' },
+              ]}
+            >
               Delete Account
             </Text>
           </TouchableOpacity>

@@ -331,6 +331,10 @@ export function RoleDetailsScreen() {
                 );
               }}
               readonly={false}
+              selectedAuthorizations={new Set()}
+              onToggleAuthorization={(_authorizationKey: string): void => {
+                throw new Error('Function not implemented.');
+              }}
             />
           ) : (
             <View style={styles.emptyState}>

@@ -20,7 +20,10 @@ class HybridStorageService {
   };
 
   // Store auth data using the best available method
-  async setAuthData(authData: AuthResponse, options?: StorageOptions): Promise<boolean> {
+  async setAuthData(
+    authData: AuthResponse,
+    options?: StorageOptions,
+  ): Promise<boolean> {
     try {
       console.log('🔄 [HYBRID STORAGE] Attempting to store auth data...');
       const { user, tokens } = authData;
@@ -35,7 +38,9 @@ class HybridStorageService {
       }
 
       // Fallback to AsyncStorage
-      console.log('🔄 [HYBRID STORAGE] Keychain failed, using AsyncStorage fallback...');
+      console.log(
+        '🔄 [HYBRID STORAGE] Keychain failed, using AsyncStorage fallback...',
+      );
       const asyncSuccess = await this.tryAsyncStorageStorage(authData);
 
       if (asyncSuccess) {
@@ -47,7 +52,10 @@ class HybridStorageService {
       console.error('❌ [HYBRID STORAGE] Both storage methods failed');
       return false;
     } catch (error) {
-      console.error('❌ [HYBRID STORAGE] Critical error in setAuthData:', error);
+      console.error(
+        '❌ [HYBRID STORAGE] Critical error in setAuthData:',
+        error,
+      );
       return false;
     }
   }
@@ -76,28 +84,28 @@ class HybridStorageService {
         `${this.KEYCHAIN_SERVICE}_${this.KEYS.USER_DATA}`,
         user.email,
         JSON.stringify(user),
-        options
+        options,
       );
 
       await Keychain.setInternetCredentials(
         `${this.KEYCHAIN_SERVICE}_${this.KEYS.ACCESS_TOKEN}`,
         'access_token',
         accessToken,
-        options
+        options,
       );
 
       await Keychain.setInternetCredentials(
         `${this.KEYCHAIN_SERVICE}_${this.KEYS.REFRESH_TOKEN}`,
         'refresh_token',
         refreshToken,
-        options
+        options,
       );
 
       await Keychain.setInternetCredentials(
         `${this.KEYCHAIN_SERVICE}_${this.KEYS.AUTH_STATE}`,
         'auth_state',
         'true',
-        options
+        options,
       );
 
       return true;
@@ -108,7 +116,9 @@ class HybridStorageService {
   }
 
   // Store in AsyncStorage as fallback
-  private async tryAsyncStorageStorage(authData: AuthResponse): Promise<boolean> {
+  private async tryAsyncStorageStorage(
+    authData: AuthResponse,
+  ): Promise<boolean> {
     try {
       const { user, tokens } = authData;
 
@@ -117,15 +127,30 @@ class HybridStorageService {
       const refreshToken = tokens.refresh || tokens.refresh_token;
 
       if (!accessToken || !refreshToken) {
-        console.error('💾 [ASYNC STORAGE] Missing tokens in auth data:', tokens);
+        console.error(
+          '💾 [ASYNC STORAGE] Missing tokens in auth data:',
+          tokens,
+        );
         return false;
       }
 
       await Promise.all([
-        AsyncStorage.setItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.USER_DATA}`, JSON.stringify(user)),
-        AsyncStorage.setItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.ACCESS_TOKEN}`, accessToken),
-        AsyncStorage.setItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.REFRESH_TOKEN}`, refreshToken),
-        AsyncStorage.setItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.AUTH_STATE}`, 'true'),
+        AsyncStorage.setItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.USER_DATA}`,
+          JSON.stringify(user),
+        ),
+        AsyncStorage.setItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.ACCESS_TOKEN}`,
+          accessToken,
+        ),
+        AsyncStorage.setItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.REFRESH_TOKEN}`,
+          refreshToken,
+        ),
+        AsyncStorage.setItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.AUTH_STATE}`,
+          'true',
+        ),
       ]);
 
       return true;
@@ -221,7 +246,9 @@ class HybridStorageService {
   // Helper methods for Keychain operations
   private async getUserDataFromKeychain(): Promise<User | null> {
     try {
-      const credentials = await Keychain.getInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.USER_DATA}`);
+      const credentials = await Keychain.getInternetCredentials(
+        `${this.KEYCHAIN_SERVICE}_${this.KEYS.USER_DATA}`,
+      );
       if (credentials && credentials.password) {
         return JSON.parse(credentials.password) as User;
       }
@@ -234,7 +261,9 @@ class HybridStorageService {
 
   private async getAccessTokenFromKeychain(): Promise<string | null> {
     try {
-      const credentials = await Keychain.getInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.ACCESS_TOKEN}`);
+      const credentials = await Keychain.getInternetCredentials(
+        `${this.KEYCHAIN_SERVICE}_${this.KEYS.ACCESS_TOKEN}`,
+      );
       return credentials ? credentials.password : null;
     } catch (error) {
       console.error('🔐 [KEYCHAIN] Error getting access token:', error);
@@ -244,7 +273,9 @@ class HybridStorageService {
 
   private async getRefreshTokenFromKeychain(): Promise<string | null> {
     try {
-      const credentials = await Keychain.getInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.REFRESH_TOKEN}`);
+      const credentials = await Keychain.getInternetCredentials(
+        `${this.KEYCHAIN_SERVICE}_${this.KEYS.REFRESH_TOKEN}`,
+      );
       return credentials ? credentials.password : null;
     } catch (error) {
       console.error('🔐 [KEYCHAIN] Error getting refresh token:', error);
@@ -254,7 +285,9 @@ class HybridStorageService {
 
   private async isAuthenticatedFromKeychain(): Promise<boolean> {
     try {
-      const credentials = await Keychain.getInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.AUTH_STATE}`);
+      const credentials = await Keychain.getInternetCredentials(
+        `${this.KEYCHAIN_SERVICE}_${this.KEYS.AUTH_STATE}`,
+      );
       return credentials ? credentials.password === 'true' : false;
     } catch (error) {
       console.error('🔐 [KEYCHAIN] Error checking auth state:', error);
@@ -265,10 +298,22 @@ class HybridStorageService {
   private async clearKeychainData(): Promise<void> {
     try {
       await Promise.all([
-        Keychain.resetInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.USER_DATA}`),
-        Keychain.resetInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.ACCESS_TOKEN}`),
-        Keychain.resetInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.REFRESH_TOKEN}`),
-        Keychain.resetInternetCredentials(`${this.KEYCHAIN_SERVICE}_${this.KEYS.AUTH_STATE}`),
+        Keychain.resetInternetCredentials({
+          server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.USER_DATA}`,
+          username: 'user_data',
+        }),
+        Keychain.resetInternetCredentials({
+          server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.ACCESS_TOKEN}`,
+          username: 'access_token',
+        }),
+        Keychain.resetInternetCredentials({
+          server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.REFRESH_TOKEN}`,
+          username: 'refresh_token',
+        }),
+        Keychain.resetInternetCredentials({
+          server: `${this.KEYCHAIN_SERVICE}_${this.KEYS.AUTH_STATE}`,
+          username: 'auth_state',
+        }),
       ]);
     } catch (error) {
       console.error('🔐 [KEYCHAIN] Error clearing data:', error);
@@ -278,8 +323,10 @@ class HybridStorageService {
   // Helper methods for AsyncStorage operations
   private async getUserDataFromAsyncStorage(): Promise<User | null> {
     try {
-      const userData = await AsyncStorage.getItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.USER_DATA}`);
-      return userData ? JSON.parse(userData) as User : null;
+      const userData = await AsyncStorage.getItem(
+        `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.USER_DATA}`,
+      );
+      return userData ? (JSON.parse(userData) as User) : null;
     } catch (error) {
       console.error('💾 [ASYNC STORAGE] Error getting user data:', error);
       return null;
@@ -288,7 +335,9 @@ class HybridStorageService {
 
   private async getAccessTokenFromAsyncStorage(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.ACCESS_TOKEN}`);
+      return await AsyncStorage.getItem(
+        `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.ACCESS_TOKEN}`,
+      );
     } catch (error) {
       console.error('💾 [ASYNC STORAGE] Error getting access token:', error);
       return null;
@@ -297,7 +346,9 @@ class HybridStorageService {
 
   private async getRefreshTokenFromAsyncStorage(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.REFRESH_TOKEN}`);
+      return await AsyncStorage.getItem(
+        `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.REFRESH_TOKEN}`,
+      );
     } catch (error) {
       console.error('💾 [ASYNC STORAGE] Error getting refresh token:', error);
       return null;
@@ -306,7 +357,9 @@ class HybridStorageService {
 
   private async isAuthenticatedFromAsyncStorage(): Promise<boolean> {
     try {
-      const authState = await AsyncStorage.getItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.AUTH_STATE}`);
+      const authState = await AsyncStorage.getItem(
+        `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.AUTH_STATE}`,
+      );
       return authState === 'true';
     } catch (error) {
       console.error('💾 [ASYNC STORAGE] Error checking auth state:', error);
@@ -317,11 +370,21 @@ class HybridStorageService {
   private async clearAsyncStorageData(): Promise<void> {
     try {
       await Promise.all([
-        AsyncStorage.removeItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.USER_DATA}`),
-        AsyncStorage.removeItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.ACCESS_TOKEN}`),
-        AsyncStorage.removeItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.REFRESH_TOKEN}`),
-        AsyncStorage.removeItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.AUTH_STATE}`),
-        AsyncStorage.removeItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.STORAGE_METHOD}`),
+        AsyncStorage.removeItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.USER_DATA}`,
+        ),
+        AsyncStorage.removeItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.ACCESS_TOKEN}`,
+        ),
+        AsyncStorage.removeItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.REFRESH_TOKEN}`,
+        ),
+        AsyncStorage.removeItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.AUTH_STATE}`,
+        ),
+        AsyncStorage.removeItem(
+          `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.STORAGE_METHOD}`,
+        ),
       ]);
     } catch (error) {
       console.error('💾 [ASYNC STORAGE] Error clearing data:', error);
@@ -331,7 +394,10 @@ class HybridStorageService {
   // Storage method tracking
   private async setStorageMethod(method: 'keychain' | 'async'): Promise<void> {
     try {
-      await AsyncStorage.setItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.STORAGE_METHOD}`, method);
+      await AsyncStorage.setItem(
+        `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.STORAGE_METHOD}`,
+        method,
+      );
     } catch (error) {
       console.error('❌ [HYBRID STORAGE] Error setting storage method:', error);
     }
@@ -339,7 +405,9 @@ class HybridStorageService {
 
   private async getStorageMethod(): Promise<'keychain' | 'async'> {
     try {
-      const method = await AsyncStorage.getItem(`${this.ASYNC_STORAGE_PREFIX}${this.KEYS.STORAGE_METHOD}`);
+      const method = await AsyncStorage.getItem(
+        `${this.ASYNC_STORAGE_PREFIX}${this.KEYS.STORAGE_METHOD}`,
+      );
       return (method as 'keychain' | 'async') || 'async'; // Default to async if not set
     } catch (error) {
       console.error('❌ [HYBRID STORAGE] Error getting storage method:', error);
@@ -356,7 +424,7 @@ class HybridStorageService {
 
       return {
         method,
-        hasData: !!(userData && accessToken)
+        hasData: !!(userData && accessToken),
       };
     } catch (error) {
       console.error('❌ [HYBRID STORAGE] Error getting storage info:', error);

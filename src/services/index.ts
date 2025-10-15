@@ -1,7 +1,12 @@
 // Example usage of HTTP Service
 import HttpService from '../services/httpService';
 import NetworkService from '../services/networkService';
-import { LoginRequest, RegisterRequest, ChangePasswordRequest } from '../types';
+import type {
+  LoginRequest,
+  RegisterRequest,
+  ChangePasswordRequest,
+  UpdateProfileRequest,
+} from '../types';
 
 // Example: Authentication functions
 export const authService = {
@@ -82,7 +87,6 @@ export const authService = {
   // Logout user
   async logout() {
     try {
-      const response = await HttpService.logout();
       console.log('Logout successful');
       return true;
     } catch (error) {
@@ -126,7 +130,7 @@ export const userService = {
   },
 
   // Update user profile
-  async updateProfile(userData: any) {
+  async updateProfile(userData: UpdateProfileRequest) {
     try {
       if (!NetworkService.isConnected()) {
         throw new Error('No internet connection');
@@ -170,7 +174,7 @@ export const apiService = {
   },
 
   // Generic POST request
-  async post<T>(url: string, data: any) {
+  async post<T, TData = unknown>(url: string, data: TData) {
     try {
       if (!NetworkService.isConnected()) {
         throw new Error('No internet connection');
@@ -190,7 +194,7 @@ export const apiService = {
   },
 
   // Generic PUT request
-  async put<T>(url: string, data: any) {
+  async put<T, TData = unknown>(url: string, data: TData) {
     try {
       if (!NetworkService.isConnected()) {
         throw new Error('No internet connection');

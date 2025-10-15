@@ -14,8 +14,8 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme } from '../contexts/ThemeContext';
 import { MainLayout } from '../components/MainLayout';
 import { useChatContext } from '../contexts/ChatContext';
-import { Chat } from '../types';
-import { RootStackParamList } from '../navigation/AppNavigator';
+import type { Chat } from '../types';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 import { ProfilePhoto } from '../components/profilePhoto';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -112,7 +112,9 @@ function ChatItem({ chat, onPress, isLoading }: ChatItemProps) {
             ]}
             numberOfLines={1}
           >
-            {isLoading ? 'Carregando...' : chat.lastMessage?.text || 'Nenhuma mensagem'}
+            {isLoading
+              ? 'Carregando...'
+              : chat.lastMessage?.text || 'Nenhuma mensagem'}
           </Text>
 
           {chat.unreadCount > 0 && !isLoading && (
@@ -138,7 +140,8 @@ function ChatItem({ chat, onPress, isLoading }: ChatItemProps) {
 export function ChatListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { theme } = useTheme();
-  const { chats, loadChats, loading, error, setCurrentChat, createChat } = useChatContext();
+  const { chats, loadChats, loading, error, setCurrentChat, createChat } =
+    useChatContext();
   const [refreshing, setRefreshing] = useState(false);
   const [loadingChatId, setLoadingChatId] = useState<string | null>(null);
 
@@ -162,7 +165,9 @@ export function ChatListScreen() {
         return;
       }
 
-      console.log('📡 [ChatListScreen] Getting or creating direct chat before navigation...');
+      console.log(
+        '📡 [ChatListScreen] Getting or creating direct chat before navigation...',
+      );
 
       // Call the endpoint to get or create the direct chat
       const updatedChat = await createChat(participantId);
@@ -172,13 +177,16 @@ export function ChatListScreen() {
         return;
       }
 
-      console.log('✅ [ChatListScreen] Chat ready, navigating to ChatScreen...');
+      console.log(
+        '✅ [ChatListScreen] Chat ready, navigating to ChatScreen...',
+      );
 
       // Set the current chat and navigate
       setCurrentChat(updatedChat);
       navigation.navigate('Chat', {
         chatId: updatedChat.id,
-        chatName: updatedChat.chatName || updatedChat.participants[0]?.name || 'Chat',
+        chatName:
+          updatedChat.chatName || updatedChat.participants[0]?.name || 'Chat',
         userId: updatedChat.participants[0]?.id || '',
       });
     } catch (error) {

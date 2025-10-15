@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { ProfilePhoto } from '../components/profilePhoto';
 
 export function ProfileScreen() {
   const navigation = useNavigation();
-  const { user, logout } = useAppContext();
+  const { user } = useAppContext();
   const { theme } = useTheme();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editedName, setEditedName] = useState(user?.name || '');

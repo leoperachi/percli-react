@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const { width } = Dimensions.get('window');
+Dimensions.get('window');
 
 export function RegisterScreen() {
   const navigation = useNavigation();
@@ -299,7 +299,9 @@ export function RegisterScreen() {
             >
               Já tem uma conta?{' '}
             </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login' as never)}
+            >
               <Text style={styles.loginLink}>Fazer login</Text>
             </TouchableOpacity>
           </View>

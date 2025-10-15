@@ -1,5 +1,5 @@
-import axios, { AxiosResponse, AxiosError } from 'axios';
-import { API_CONFIG, buildUrl, ApiResponse, AuthResponse } from '../config/api';
+import axios, { type AxiosResponse, type AxiosError } from 'axios';
+import { API_CONFIG, type ApiResponse, type AuthResponse } from '../config/api';
 import { ENV, log, logError } from '../config/environment';
 import hybridStorageService from './hybridStorageService';
 
@@ -44,20 +44,6 @@ class ApiService {
     return await hybridStorageService.getRefreshToken();
   }
 
-  // Store tokens (not used in hybrid - tokens stored as part of auth data)
-  private async storeTokens(
-    accessToken: string,
-    refreshToken: string,
-  ): Promise<void> {
-    try {
-      // Note: In hybrid storage, tokens are stored as part of setAuthData
-      // This method kept for compatibility but not actively used
-      console.log('⚠️ [API SERVICE] storeTokens called - tokens should be stored via setAuthData');
-    } catch (error) {
-      logError('Error storing tokens:', error);
-    }
-  }
-
   // Clear all stored data
   private async clearStorage(): Promise<void> {
     try {
@@ -65,24 +51,6 @@ class ApiService {
     } catch (error) {
       logError('Error clearing storage:', error);
     }
-  }
-
-  // Build headers with authentication
-  private async buildHeaders(
-    includeAuth: boolean = true,
-  ): Promise<HeadersInit> {
-    const headers: HeadersInit = {
-      ...API_CONFIG.HEADERS,
-    };
-
-    if (includeAuth) {
-      const token = await this.getAccessToken();
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-    }
-
-    return headers;
   }
 
   // Generic HTTP request method using Axios
@@ -187,7 +155,7 @@ class ApiService {
           apiResponse = {
             success: true,
             data: serverData.data,
-            message: serverData.message
+            message: serverData.message,
           };
         } else if (serverData.success !== undefined) {
           // Already in ApiResponse format
@@ -196,18 +164,21 @@ class ApiService {
           // Direct data response
           apiResponse = {
             success: true,
-            data: serverData
+            data: serverData,
           };
         }
       } else {
         // Server returned error
         apiResponse = {
           success: false,
-          error: serverData.message || serverData.error || 'Server error'
+          error: serverData.message || serverData.error || 'Server error',
         };
       }
 
-      console.log('🔥 [API SERVICE] Formatted API response:', JSON.stringify(apiResponse, null, 2));
+      console.log(
+        '🔥 [API SERVICE] Formatted API response:',
+        JSON.stringify(apiResponse, null, 2),
+      );
       console.log(
         '================== API SERVICE REQUEST SUCCESS ==================',
       );
@@ -249,7 +220,10 @@ class ApiService {
               '🚫 [API SERVICE] 401 detected on non-authenticated request (register/login/etc)',
             );
             // For non-authenticated requests (like register), treat 401 as a normal error
-            let errorMessage = this.getAxiosErrorMessage(axiosError, endpoint);
+            const errorMessage = this.getAxiosErrorMessage(
+              axiosError,
+              endpoint,
+            );
             return {
               success: false,
               error: errorMessage,
@@ -257,7 +231,7 @@ class ApiService {
           }
         }
 
-        let errorMessage = this.getAxiosErrorMessage(axiosError, endpoint);
+        const errorMessage = this.getAxiosErrorMessage(axiosError, endpoint);
         console.log('[API SERVICE] Final error message:', errorMessage);
 
         console.log(
@@ -428,7 +402,9 @@ class ApiService {
       if (data.data?.user) {
         // Store auth data if login response contains tokens
         if (data.data.tokens) {
-          console.log('🔥 [LOGIN] Login successful with tokens, storing auth data...');
+          console.log(
+            '🔥 [LOGIN] Login successful with tokens, storing auth data...',
+          );
           const stored = await hybridStorageService.setAuthData(data.data);
           console.log('🔥 [LOGIN] Auth data storage result:', stored);
         } else {
@@ -463,16 +439,26 @@ class ApiService {
       false, // Don't include auth header for registration
     );
 
-    console.log('🔥 [REGISTER] Response received:', JSON.stringify(response, null, 2));
+    console.log(
+      '🔥 [REGISTER] Response received:',
+      JSON.stringify(response, null, 2),
+    );
 
     // Store auth data if registration successful and data contains tokens
     if (response.success && response.data && response.data.tokens) {
-      console.log('🔥 [REGISTER] Registration successful with tokens, storing auth data...');
+      console.log(
+        '🔥 [REGISTER] Registration successful with tokens, storing auth data...',
+      );
       const stored = await hybridStorageService.setAuthData(response.data);
       console.log('🔥 [REGISTER] Auth data storage result:', stored);
     } else {
-      console.log('🔥 [REGISTER] Registration response:', JSON.stringify(response, null, 2));
-      console.log('🔥 [REGISTER] Not storing auth data - no tokens in response');
+      console.log(
+        '🔥 [REGISTER] Registration response:',
+        JSON.stringify(response, null, 2),
+      );
+      console.log(
+        '🔥 [REGISTER] Not storing auth data - no tokens in response',
+      );
     }
 
     return response;
@@ -533,11 +519,20 @@ class ApiService {
     profilePhoto?: string; // base64 string
   }): Promise<ApiResponse> {
     console.log('🔥 [UPDATE PROFILE] Starting profile update with photo...');
-    console.log('🔥 [UPDATE PROFILE] Profile data keys:', Object.keys(profileData));
-    console.log('🔥 [UPDATE PROFILE] Has profilePhoto:', !!profileData.profilePhoto);
+    console.log(
+      '🔥 [UPDATE PROFILE] Profile data keys:',
+      Object.keys(profileData),
+    );
+    console.log(
+      '🔥 [UPDATE PROFILE] Has profilePhoto:',
+      !!profileData.profilePhoto,
+    );
 
     if (profileData.profilePhoto) {
-      console.log('🔥 [UPDATE PROFILE] Photo size (chars):', profileData.profilePhoto.length);
+      console.log(
+        '🔥 [UPDATE PROFILE] Photo size (chars):',
+        profileData.profilePhoto.length,
+      );
     }
 
     return this.request(API_CONFIG.ENDPOINTS.USER.UPDATE_PROFILE, {
@@ -578,19 +573,32 @@ class ApiService {
   }
 
   // Chat methods
-  async getUserChats(page: number = 1, limit: number = 20): Promise<ApiResponse> {
-    return this.request(`${API_CONFIG.ENDPOINTS.CHATS.LIST}?page=${page}&limit=${limit}`, {
-      method: 'GET',
-    });
+  async getUserChats(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<ApiResponse> {
+    return this.request(
+      `${API_CONFIG.ENDPOINTS.CHATS.LIST}?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+      },
+    );
   }
 
   async getChatById(chatId: string): Promise<ApiResponse> {
-    return this.request(API_CONFIG.ENDPOINTS.CHATS.GET_BY_ID.replace(':chatId', chatId), {
-      method: 'GET',
-    });
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.GET_BY_ID.replace(':chatId', chatId),
+      {
+        method: 'GET',
+      },
+    );
   }
 
-  async createChat(participantUserIds: string[], chatName?: string, chatType: 'direct' | 'group' = 'direct'): Promise<ApiResponse> {
+  async createChat(
+    participantUserIds: string[],
+    chatName?: string,
+    chatType: 'direct' | 'group' = 'direct',
+  ): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.CHATS.CREATE, {
       method: 'POST',
       body: JSON.stringify({ participantUserIds, chatName, chatType }),
@@ -598,23 +606,50 @@ class ApiService {
   }
 
   async getOrCreateDirectChat(userId: string): Promise<ApiResponse> {
-    console.log('🔥 [API SERVICE] Getting or creating direct chat with user:', userId);
-    return this.request(API_CONFIG.ENDPOINTS.CHATS.GET_OR_CREATE_DIRECT.replace(':userId', userId), {
-      method: 'GET',
-    });
+    console.log(
+      '🔥 [API SERVICE] Getting or creating direct chat with user:',
+      userId,
+    );
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.GET_OR_CREATE_DIRECT.replace(
+        ':userId',
+        userId,
+      ),
+      {
+        method: 'GET',
+      },
+    );
   }
 
-  async getChatMessages(chatId: string, page: number = 1, limit: number = 50): Promise<ApiResponse> {
-    return this.request(`${API_CONFIG.ENDPOINTS.CHATS.MESSAGES.replace(':chatId', chatId)}?page=${page}&limit=${limit}`, {
-      method: 'GET',
-    });
+  async getChatMessages(
+    chatId: string,
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<ApiResponse> {
+    return this.request(
+      `${API_CONFIG.ENDPOINTS.CHATS.MESSAGES.replace(
+        ':chatId',
+        chatId,
+      )}?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+      },
+    );
   }
 
-  async sendChatMessage(chatId: string, content: string, messageType: 'text' | 'image' | 'file' = 'text', replyToId?: string): Promise<ApiResponse> {
-    return this.request(API_CONFIG.ENDPOINTS.CHATS.SEND_MESSAGE.replace(':chatId', chatId), {
-      method: 'POST',
-      body: JSON.stringify({ content, messageType, replyToId }),
-    });
+  async sendChatMessage(
+    chatId: string,
+    content: string,
+    messageType: 'text' | 'image' | 'file' = 'text',
+    replyToId?: string,
+  ): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.SEND_MESSAGE.replace(':chatId', chatId),
+      {
+        method: 'POST',
+        body: JSON.stringify({ content, messageType, replyToId }),
+      },
+    );
   }
 
   async markMessagesAsRead(messageIds: string[]): Promise<ApiResponse> {
@@ -631,7 +666,9 @@ class ApiService {
   }
 
   // Google Authentication - Authorization Code Flow
-  async googleAuth(authorizationCode: string): Promise<ApiResponse<AuthResponse>> {
+  async googleAuth(
+    authorizationCode: string,
+  ): Promise<ApiResponse<AuthResponse>> {
     try {
       const response = await fetch(`${ENV.API_BASE_URL}/auth/google`, {
         method: 'POST',
@@ -640,7 +677,7 @@ class ApiService {
         },
         body: JSON.stringify({
           code: authorizationCode,
-          grantType: 'authorization_code'
+          grantType: 'authorization_code',
         }),
       });
 

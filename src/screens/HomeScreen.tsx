@@ -7,13 +7,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { MainLayout } from '../components/MainLayout';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { MainLayout } from '../components/MainLayout';
 
 export function HomeScreen() {
   const navigation = useNavigation();
-  const { user, logout } = useAppContext();
+  const { logout } = useAppContext();
   const { theme } = useTheme();
 
   const renderBottomNav = () => (

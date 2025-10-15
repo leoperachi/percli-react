@@ -80,7 +80,8 @@ export interface ForgotPasswordRequest {
 export interface UpdateProfileRequest {
   name?: string;
   email?: string;
-  [key: string]: any;
+  profilePhoto?: string;
+  profilePicture?: string;
 }
 
 export interface RefreshTokenRequest {
@@ -167,7 +168,11 @@ export interface ChatContextType {
   error: string | null;
   loadChats: () => Promise<void>;
   loadMessages: (chatId: string) => Promise<void>;
-  sendMessage: (text: string, receiverId: string, replyTo?: string) => Promise<void>;
+  sendMessage: (
+    text: string,
+    receiverId: string,
+    replyTo?: string,
+  ) => Promise<void>;
   markAsRead: (chatId: string) => Promise<void>;
   createChat: (participantId: string) => Promise<Chat | null>;
   setCurrentChat: (chat: Chat | null) => void;

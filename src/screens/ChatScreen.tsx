@@ -1,5 +1,5 @@
 // biome-ignore assist/source/organizeImports: explanation
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   View,
   StyleSheet,

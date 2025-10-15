@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppContext } from '../contexts/AppContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const { width } = Dimensions.get('window');
+Dimensions.get('window');
 
 export function LoginScreen() {
   const navigation = useNavigation();
@@ -117,7 +117,7 @@ export function LoginScreen() {
           {/* Forgot Password */}
           <TouchableOpacity
             style={styles.forgotPassword}
-            onPress={() => navigation.navigate('ForgotPassword')}
+            onPress={() => navigation.navigate('ForgotPassword' as never)}
           >
             <Text
               style={[
@@ -190,7 +190,9 @@ export function LoginScreen() {
             >
               Não tem uma conta?{' '}
             </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Register' as never)}
+            >
               <Text style={[styles.signUpLink, { color: theme.colors.accent }]}>
                 Criar conta
               </Text>

@@ -125,7 +125,8 @@ export function AuthorizationsScreen() {
                 {
                   id: 6,
                   name: 'Manage Roles',
-                  description: 'Create, update, delete roles and manage permissions',
+                  description:
+                    'Create, update, delete roles and manage permissions',
                   resource: 'roles',
                   action: 'manage',
                   uplevel: 10,
@@ -240,7 +241,11 @@ export function AuthorizationsScreen() {
   const handleMenuPress = (menu: Menu) => {
     Alert.alert(
       'Menu Permission',
-      `Name: ${menu.name}\nDescription: ${menu.description}\nResource: ${menu.resource}\nAction: ${menu.action}\nStatus: ${menu.isActive ? 'Active' : 'Inactive'}`
+      `Name: ${menu.name}\nDescription: ${menu.description}\nResource: ${
+        menu.resource
+      }\nAction: ${menu.action}\nStatus: ${
+        menu.isActive ? 'Active' : 'Inactive'
+      }`,
     );
   };
 
@@ -265,7 +270,11 @@ export function AuthorizationsScreen() {
 
   if (loading) {
     return (
-      <MainLayout title="Authorizations" leftIcon="back" onLeftPress={handleBackPress}>
+      <MainLayout
+        title="Authorizations"
+        leftIcon="back"
+        onLeftPress={handleBackPress}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={[styles.loadingText, { color: theme.colors.text }]}>
@@ -277,36 +286,61 @@ export function AuthorizationsScreen() {
   }
 
   return (
-    <MainLayout title="Authorizations" leftIcon="back" onLeftPress={handleBackPress}>
+    <MainLayout
+      title="Authorizations"
+      leftIcon="back"
+      onLeftPress={handleBackPress}
+    >
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>
             Manage Authorizations
           </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-            {authorizations.length} authorization group{authorizations.length !== 1 ? 's' : ''}
+          <Text
+            style={[styles.subtitle, { color: theme.colors.textSecondary }]}
+          >
+            {authorizations.length} authorization group
+            {authorizations.length !== 1 ? 's' : ''}
           </Text>
         </View>
 
         <View style={styles.authorizationsList}>
-          {authorizations.map((auth) => (
+          {authorizations.map(auth => (
             <View key={auth.id}>
               <TouchableOpacity
                 style={[
                   styles.authorizationCard,
-                  { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                  },
                 ]}
                 onPress={() => handleAuthorizationPress(auth.id)}
               >
                 <View style={styles.authHeader}>
                   <View style={styles.authInfo}>
-                    <Text style={[styles.authName, { color: theme.colors.text }]}>
+                    <Text
+                      style={[styles.authName, { color: theme.colors.text }]}
+                    >
                       {auth.father}
                     </Text>
-                    <Text style={[styles.authStats, { color: theme.colors.textSecondary }]}>
-                      {auth.children.length} recurso{auth.children.length !== 1 ? 's' : ''} • {auth.totalMenus} permissõe{auth.totalMenus !== 1 ? 's' : ''}
+                    <Text
+                      style={[
+                        styles.authStats,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
+                      {auth.children.length} recurso
+                      {auth.children.length !== 1 ? 's' : ''} •{' '}
+                      {auth.totalMenus} permissõe
+                      {auth.totalMenus !== 1 ? 's' : ''}
                     </Text>
-                    <Text style={[styles.authDate, { color: theme.colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.authDate,
+                        { color: theme.colors.textSecondary },
+                      ]}
+                    >
                       Criado em {formatDate(auth.createdAt)}
                     </Text>
                   </View>
@@ -315,8 +349,12 @@ export function AuthorizationsScreen() {
                       styles.expandIcon,
                       {
                         color: theme.colors.textSecondary,
-                        transform: [{ rotate: expandedAuth === auth.id ? '90deg' : '0deg' }]
-                      }
+                        transform: [
+                          {
+                            rotate: expandedAuth === auth.id ? '90deg' : '0deg',
+                          },
+                        ],
+                      },
                     ]}
                   >
                     ▶
@@ -325,46 +363,85 @@ export function AuthorizationsScreen() {
               </TouchableOpacity>
 
               {expandedAuth === auth.id && (
-                <View style={[styles.resourcesList, { backgroundColor: theme.colors.background }]}>
-                  {auth.children.map((resource) => (
+                <View
+                  style={[
+                    styles.resourcesList,
+                    { backgroundColor: theme.colors.background },
+                  ]}
+                >
+                  {auth.children.map(resource => (
                     <View key={resource.resource} style={styles.resourceGroup}>
                       <View style={styles.resourceHeader}>
                         <View
                           style={[
                             styles.resourceIcon,
-                            { backgroundColor: getResourceColor(resource.resource) }
+                            {
+                              backgroundColor: getResourceColor(
+                                resource.resource,
+                              ),
+                            },
                           ]}
                         >
                           <Text style={styles.resourceInitial}>
                             {resource.resource.charAt(0).toUpperCase()}
                           </Text>
                         </View>
-                        <Text style={[styles.resourceName, { color: theme.colors.text }]}>
-                          {resource.resource.charAt(0).toUpperCase() + resource.resource.slice(1)}
+                        <Text
+                          style={[
+                            styles.resourceName,
+                            { color: theme.colors.text },
+                          ]}
+                        >
+                          {resource.resource.charAt(0).toUpperCase() +
+                            resource.resource.slice(1)}
                         </Text>
-                        <Text style={[styles.menuCount, { color: theme.colors.textSecondary }]}>
-                          {resource.menus.length} menu{resource.menus.length !== 1 ? 's' : ''}
+                        <Text
+                          style={[
+                            styles.menuCount,
+                            { color: theme.colors.textSecondary },
+                          ]}
+                        >
+                          {resource.menus.length} menu
+                          {resource.menus.length !== 1 ? 's' : ''}
                         </Text>
                       </View>
 
                       <View style={styles.menusList}>
-                        {resource.menus.map((menu) => (
+                        {resource.menus.map(menu => (
                           <TouchableOpacity
                             key={menu.id}
                             style={[
                               styles.menuItem,
-                              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+                              {
+                                backgroundColor: theme.colors.surface,
+                                borderColor: theme.colors.border,
+                              },
                             ]}
                             onPress={() => handleMenuPress(menu)}
                           >
                             <View style={styles.menuInfo}>
-                              <Text style={[styles.menuName, { color: theme.colors.text }]}>
+                              <Text
+                                style={[
+                                  styles.menuName,
+                                  { color: theme.colors.text },
+                                ]}
+                              >
                                 {menu.name}
                               </Text>
-                              <Text style={[styles.menuDescription, { color: theme.colors.textSecondary }]}>
+                              <Text
+                                style={[
+                                  styles.menuDescription,
+                                  { color: theme.colors.textSecondary },
+                                ]}
+                              >
                                 {menu.description}
                               </Text>
-                              <Text style={[styles.menuAction, { color: theme.colors.textSecondary }]}>
+                              <Text
+                                style={[
+                                  styles.menuAction,
+                                  { color: theme.colors.textSecondary },
+                                ]}
+                              >
                                 Ação: {menu.action}
                               </Text>
                             </View>
