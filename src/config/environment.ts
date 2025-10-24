@@ -1,3 +1,12 @@
+import {
+  API_BASE_URL,
+  API_TIMEOUT,
+  ENVIRONMENT,
+  ENABLE_LOGGING,
+  APP_NAME,
+  APP_VERSION,
+} from '@env';
+
 // Environment Configuration
 export interface EnvironmentConfig {
   API_BASE_URL: string;
@@ -8,26 +17,15 @@ export interface EnvironmentConfig {
   APP_VERSION: string;
 }
 
-// Get configuration with hardcoded values for now
+// Get configuration from .env file
 const getConfig = (): EnvironmentConfig => {
-  // For Android emulator, always use 10.0.2.2
-  // For iOS simulator, use localhost
-  // For production, use production URL
-  const getApiUrl = () => {
-    if (!__DEV__) return 'https://api.percli.com'; // Production URL
-
-    // For now, always use emulator IP for development
-    // This can be changed later based on platform detection
-    return 'http://192.168.0.101:3000'; // Android emulator IP
-  };
-
   return {
-    API_BASE_URL: getApiUrl(),
-    API_TIMEOUT: 10000,
-    ENABLE_LOGGING: __DEV__,
-    ENVIRONMENT: __DEV__ ? 'development' : 'production',
-    APP_NAME: 'Percli',
-    APP_VERSION: '1.0.0',
+    API_BASE_URL: API_BASE_URL || 'http://localhost:3000',
+    API_TIMEOUT: Number(API_TIMEOUT) || 10000,
+    ENABLE_LOGGING: ENABLE_LOGGING === 'true',
+    ENVIRONMENT: (ENVIRONMENT as EnvironmentConfig['ENVIRONMENT']) || 'development',
+    APP_NAME: APP_NAME || 'Percli',
+    APP_VERSION: APP_VERSION || '1.0.0',
   };
 };
 

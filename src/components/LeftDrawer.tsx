@@ -220,7 +220,7 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
           onPress={handleProfilePress}
         >
           <ProfilePhoto
-            imageBase64={user?.profilePhoto}
+            imageBase64={user?.profilePicture}
             userName={user?.name || 'Administrador'}
             size={40}
             style={{ marginRight: 12 }}
