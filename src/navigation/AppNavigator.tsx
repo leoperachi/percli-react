@@ -15,6 +15,7 @@ import { RoleDetailsScreen } from '../screens/RoleDetailsScreen';
 import { AuthorizationsScreen } from '../screens/AuthorizationsScreen';
 import { ChatListScreen } from '../screens/ChatListScreen';
 import { ChatScreen } from '../screens/ChatScreen';
+import { LogViewerScreen } from '../screens/LogViewerScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -37,6 +38,7 @@ export type RootStackParamList = {
     chatName: string;
     userId: string;
   };
+  LogViewer: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -70,6 +72,7 @@ export function AppNavigator() {
             />
             <Stack.Screen name="ChatList" component={ChatListScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
+            <Stack.Screen name="LogViewer" component={LogViewerScreen} />
           </>
         ) : (
           <>

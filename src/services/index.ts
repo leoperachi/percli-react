@@ -243,3 +243,6 @@ export const networkService = {
     return await NetworkService.getDetailedNetworkInfo();
   },
 };
+
+// Export logger service
+export { logger } from './loggerService';

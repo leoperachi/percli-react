@@ -74,24 +74,64 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
   };
 
   const getResourceIcon = (resource: AuthorizationResource): string => {
-    // Check if any menu in this resource has an icon
-    const menuWithIcon = resource.menus.find(menu => menu.icon);
-    if (menuWithIcon?.icon) {
-      return menuWithIcon.icon;
-    }
+    // Map database icon names to valid MaterialIcons names
+    const iconMapping: { [key: string]: string } = {
+      // User related icons
+      user: 'account-circle',
+      users: 'account-circle',
+      people: 'account-circle',
+      person: 'account-circle',
 
-    // Fallback to default MaterialIcons based on resource name
-    const defaultIcons: { [key: string]: string } = {
-      users: 'people',
-      roles: 'vpn-key',
-      authorizations: 'shield',
+      // Role/Security related icons
+      role: 'admin-panel-settings',
+      roles: 'admin-panel-settings',
+      shield: 'admin-panel-settings',
+      security: 'admin-panel-settings',
+
+      // Authorization/Key related icons
+      authorization: 'lock',
+      authorizations: 'lock',
+      key: 'lock',
+      'vpn-key': 'lock',
+
+      // Other icons
       settings: 'settings',
       reports: 'assessment',
       dashboard: 'dashboard',
       chat: 'chat',
       notifications: 'notifications',
+      menu: 'menu',
     };
-    return defaultIcons[resource.resource.toLowerCase()] || 'menu';
+
+    // Check if any menu in this resource has an icon
+    const menuWithIcon = resource.menus.find(menu => menu.icon);
+    if (menuWithIcon?.icon) {
+      const dbIcon = menuWithIcon.icon.toLowerCase().trim();
+      console.log(
+        `[LeftDrawer] Icon from DB for ${resource.resource}:`,
+        menuWithIcon.icon,
+      );
+
+      // Try to map the database icon to a valid MaterialIcon
+      const mappedIcon = iconMapping[dbIcon];
+      if (mappedIcon) {
+        console.log(`[LeftDrawer] Mapped "${dbIcon}" to "${mappedIcon}"`);
+        return mappedIcon;
+      }
+
+      // If no mapping found, log warning and use fallback
+      console.warn(
+        `[LeftDrawer] No mapping found for icon "${dbIcon}", using fallback`,
+      );
+    }
+
+    // Fallback to default MaterialIcons based on resource name
+    const resourceName = resource.resource.toLowerCase();
+    const fallbackIcon = iconMapping[resourceName] || 'menu';
+    console.log(
+      `[LeftDrawer] Using fallback for ${resource.resource}: ${fallbackIcon}`,
+    );
+    return fallbackIcon;
   };
 
   const handleResourcePress = (resource: AuthorizationResource) => {
@@ -120,12 +160,13 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
           onPress={() => handleResourcePress(resource)}
           disabled={!canNavigate}
         >
-          <Icon
-            name={getResourceIcon(resource)}
-            size={20}
-            color={theme.colors.text}
-            style={styles.menuIconMaterial}
-          />
+          <View style={styles.resourceIconContainer}>
+            <Icon
+              name={getResourceIcon(resource)}
+              size={24}
+              color={theme.colors.text}
+            />
+          </View>
           <Text style={[styles.resourceText, { color: theme.colors.text }]}>
             {resource.resource.charAt(0).toUpperCase() +
               resource.resource.slice(1)}
@@ -263,6 +304,38 @@ export function LeftDrawer({ onClose }: LeftDrawerProps) {
             { borderTopColor: theme.colors.border },
           ]}
         >
+          {/* Debug: Logs Viewer */}
+          {__DEV__ && (
+            <TouchableOpacity
+              style={[
+                styles.menuItem,
+                styles.settingItem,
+                { borderBottomColor: theme.colors.border },
+              ]}
+              onPress={() => {
+                onClose();
+                navigation.navigate('LogViewer' as never);
+              }}
+            >
+              <View style={styles.settingInfo}>
+                <Icon
+                  name="bug-report"
+                  size={20}
+                  color={theme.colors.text}
+                  style={styles.menuIconMaterial}
+                />
+                <Text style={[styles.menuText, { color: theme.colors.text }]}>
+                  Logs do App
+                </Text>
+              </View>
+              <Icon
+                name="chevron-right"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </TouchableOpacity>
+          )}
+
           <View
             style={[
               styles.menuItem,
@@ -381,6 +454,12 @@ const styles = StyleSheet.create({
   menuIconMaterial: {
     marginRight: 12,
     width: 22,
+  },
+  resourceIconContainer: {
+    marginRight: 12,
+    width: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   menuText: {
     fontSize: 15,

@@ -26,13 +26,21 @@ export function UsersScreen() {
       setLoading(true);
 
       const response = await apiService.getUsersList();
+      console.log('[UsersScreen] API Response:', JSON.stringify(response, null, 2));
 
       if (response.success && response.data) {
-        setUsers(response.data);
+        // Check if data is an array or an object with users property
+        const usersData = Array.isArray(response.data)
+          ? response.data
+          : response.data.users || [];
+
+        console.log('[UsersScreen] Users data:', usersData);
+        setUsers(usersData);
       } else {
         Alert.alert('Error', response.error || 'Failed to load users');
       }
     } catch (error) {
+      console.error('[UsersScreen] Error loading users:', error);
       Alert.alert('Error', 'Failed to load users');
     } finally {
       setLoading(false);
