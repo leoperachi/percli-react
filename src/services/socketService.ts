@@ -18,22 +18,38 @@ class SocketServiceImpl implements SocketService {
   private isConnecting: boolean = false;
 
   async connect(token?: string): Promise<void> {
-    if (this.socket?.connected || this.isConnecting) {
+    if (this.socket?.connected) {
+      console.log('[SocketService] Socket já está conectado');
+      return;
+    }
+
+    if (this.isConnecting) {
+      console.log('[SocketService] Socket já está em processo de conexão');
       return;
     }
 
     this.isConnecting = true;
+    console.log('[SocketService] Iniciando conexão do socket');
 
     // Get token from storage if not provided
     let authToken = token;
     if (!authToken) {
+      console.log('[SocketService] Token não fornecido, buscando no storage');
       authToken = (await hybridStorageService.getAccessToken()) ?? undefined;
     }
 
     if (!authToken) {
+      console.error(
+        '[SocketService] Token não encontrado, não é possível conectar',
+      );
       this.isConnecting = false;
       return;
     }
+
+    console.log(
+      '[SocketService] Token obtido, conectando ao servidor:',
+      this.baseURL,
+    );
 
     this.socket = io(this.baseURL, {
       transports: ['websocket', 'polling'],
@@ -48,10 +64,15 @@ class SocketServiceImpl implements SocketService {
     });
 
     this.socket.on('connect', () => {
+      console.log(
+        '[SocketService] ✅ Socket conectado com sucesso! ID:',
+        this.socket?.id,
+      );
       this.isConnecting = false;
     });
 
     this.socket.on('disconnect', reason => {
+      console.log('[SocketService] ❌ Socket desconectado. Razão:', reason);
       this.isConnecting = false;
 
       // If disconnected due to authentication error, clean up
@@ -59,11 +80,12 @@ class SocketServiceImpl implements SocketService {
         reason === 'io server disconnect' ||
         reason === 'io client disconnect'
       ) {
-        // Intentional disconnect
+        console.log('[SocketService] Desconexão intencional');
       }
     });
 
     this.socket.on('connect_error', error => {
+      console.error('[SocketService] ❌ Erro ao conectar socket:', error);
       this.isConnecting = false;
 
       // Check if error is authentication related
@@ -73,6 +95,7 @@ class SocketServiceImpl implements SocketService {
         errorMessage.includes('token') ||
         errorMessage.includes('unauthorized')
       ) {
+        console.error('[SocketService] Erro de autenticação, desconectando');
         this.disconnect();
       }
     });
@@ -124,6 +147,10 @@ class SocketServiceImpl implements SocketService {
 
     // Recent conversations event (sent automatically on connect)
     this.socket.on('recent_conversations', data => {
+      console.log(
+        '[SocketService] 📬 Recebeu evento recent_conversations:',
+        data,
+      );
       // Handle recent conversations
     });
 
@@ -149,6 +176,7 @@ class SocketServiceImpl implements SocketService {
 
   disconnect(): void {
     if (this.socket) {
+      console.log('[SocketService] Desconectando socket manualmente');
       this.socket.disconnect();
       this.socket = null;
       this.isConnecting = false;
@@ -157,7 +185,17 @@ class SocketServiceImpl implements SocketService {
 
   emit(event: string, data?: unknown): void {
     if (this.socket?.connected) {
+      console.log(
+        '[SocketService] 📤 Emitindo evento:',
+        event,
+        data ? data : '(sem dados)',
+      );
       this.socket.emit(event, data);
+    } else {
+      console.warn(
+        '[SocketService] ⚠️ Tentativa de emitir evento sem socket conectado:',
+        event,
+      );
     }
   }
 
@@ -220,6 +258,7 @@ class SocketServiceImpl implements SocketService {
 
   // Request recent conversations (manual refresh)
   getRecentConversations(): void {
+    console.log('[SocketService] 🔄 Solicitando conversas recentes...');
     this.emit('get_recent_conversations');
   }
 

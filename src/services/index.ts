@@ -246,3 +246,4 @@ export const networkService = {
 
 // Export logger service
 export { logger } from './loggerService';
+export { LogAnalyzer } from './logAnalyzer';

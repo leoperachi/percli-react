@@ -37,31 +37,66 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
 
   // Listen for socket events
   useEffect(() => {
+    console.log('[RightDrawer] Iniciando configuração do socket');
+
     // Connect socket if not connected
     if (!socketService.isConnected()) {
+      console.log('[RightDrawer] Socket não conectado, iniciando conexão...');
       socketService.connect();
+    } else {
+      console.log('[RightDrawer] Socket já está conectado');
     }
 
     const socket = socketService.getSocket();
     if (socket) {
+      console.log('[RightDrawer] Socket obtido, configurando listeners');
+
       // Listen for recent conversations
       const handleRecentConversations = (data: {
         conversations: RecentConversation[];
       }) => {
+        console.log('[RightDrawer] Recebeu recent_conversations:', data);
         setConversations(data.conversations || []);
         setLoading(false);
       };
 
       socket.on('recent_conversations', handleRecentConversations);
 
-      // Request conversations manually
-      socketService.getRecentConversations();
+      // Wait for connection before requesting
+      socket.once('connect', () => {
+        console.log(
+          '[RightDrawer] Socket conectado, solicitando conversas recentes',
+        );
+        socketService.getRecentConversations();
+      });
+
+      // If already connected, request immediately
+      if (socket.connected) {
+        console.log(
+          '[RightDrawer] Socket já conectado, solicitando conversas imediatamente',
+        );
+        socketService.getRecentConversations();
+      }
+
+      // Listen for errors
+      socket.on('connect_error', error => {
+        console.error('[RightDrawer] Erro de conexão do socket:', error);
+        setLoading(false);
+      });
+
+      socket.on('error', error => {
+        console.error('[RightDrawer] Erro do socket:', error);
+      });
 
       // Cleanup
       return () => {
+        console.log('[RightDrawer] Limpando listeners do socket');
         socket.off('recent_conversations', handleRecentConversations);
+        socket.off('connect_error');
+        socket.off('error');
       };
     } else {
+      console.error('[RightDrawer] Não foi possível obter instância do socket');
       setLoading(false);
     }
   }, []);
@@ -75,8 +110,7 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
         chatName: conversation.name,
         userId: conversation.userId,
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const formatTime = (date?: Date) => {
