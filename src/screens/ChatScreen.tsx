@@ -20,6 +20,7 @@ import { MessageInput } from '../components/chat/MessageInput';
 import type { ChatMessage } from '../types';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { ProfilePhoto } from '../components/profilePhoto';
+import { safeGoBack } from '../utils/navigationHelpers';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -70,7 +71,8 @@ export function ChatScreen() {
 
   useEffect(() => {
     if (!currentChat) {
-      navigation.goBack();
+      // Se não tem chat atual, volta para ChatList
+      safeGoBack(navigation, 'ChatList');
       return;
     }
 
@@ -89,7 +91,7 @@ export function ChatScreen() {
   }, [messages]);
 
   const handleBackPress = () => {
-    navigation.goBack();
+    safeGoBack(navigation, 'ChatList');
   };
 
   const handleReply = (message: ChatMessage) => {

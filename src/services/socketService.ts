@@ -100,49 +100,63 @@ class SocketServiceImpl implements SocketService {
       }
     });
 
-    // Chat event listeners
-    this.socket.on('new_message', data => {
+    // Note: user:join will be called from ChatContext with actual user data
+    // Don't emit it here with wrong data
+
+    // Chat event listeners (Backend events)
+    this.socket.on('message:new', data => {
+      console.log('[SocketService] 📩 Nova mensagem recebida:', data);
       // Handle new message
     });
 
-    this.socket.on('message_edited', data => {
+    this.socket.on('message:edited', data => {
+      console.log('[SocketService] ✏️ Mensagem editada:', data);
       // Handle message edit
     });
 
-    this.socket.on('message_deleted', data => {
+    this.socket.on('message:deleted', data => {
+      console.log('[SocketService] 🗑️ Mensagem deletada:', data);
       // Handle message deletion
     });
 
-    this.socket.on('user_typing', data => {
+    this.socket.on('user:typing', data => {
+      console.log('[SocketService] ⌨️ Usuário digitando:', data);
       // Handle user typing
     });
 
     this.socket.on('unread_messages_count', data => {
+      console.log('[SocketService] 📊 Contagem de não lidas:', data);
       // Handle unread count
     });
 
     this.socket.on('unread_count_updated', data => {
+      console.log('[SocketService] 🔄 Contagem atualizada:', data);
       // Handle unread count update
     });
 
-    this.socket.on('joined_chat', data => {
-      // Handle joined chat
-    });
-
-    this.socket.on('left_chat', data => {
-      // Handle left chat
-    });
-
-    this.socket.on('user_joined_chat', data => {
+    this.socket.on('user:joined_chat', data => {
+      console.log('[SocketService] 👋 Usuário entrou no chat:', data);
       // Handle user joined
     });
 
-    this.socket.on('user_left_chat', data => {
+    this.socket.on('user:left_chat', data => {
+      console.log('[SocketService] 👋 Usuário saiu do chat:', data);
       // Handle user left
     });
 
-    this.socket.on('messages_marked_read', data => {
+    this.socket.on('messages:read', data => {
+      console.log('[SocketService] ✅ Mensagens marcadas como lidas:', data);
       // Handle messages marked read
+    });
+
+    this.socket.on('user:online', data => {
+      console.log('[SocketService] 🟢 Usuário online:', data);
+      // Handle user online
+    });
+
+    this.socket.on('user:offline', data => {
+      console.log('[SocketService] ⚫ Usuário offline:', data);
+      // Handle user offline
     });
 
     // Recent conversations event (sent automatically on connect)
@@ -215,13 +229,17 @@ class SocketServiceImpl implements SocketService {
     return this.socket?.connected || false;
   }
 
-  // Chat-specific methods
+  // Chat-specific methods (aligned with backend events)
+  joinUser(userId: string, userName: string): void {
+    this.emit('user:join', { userId, userName });
+  }
+
   joinChat(chatId: string): void {
-    this.emit('join_chat', { chatId });
+    this.emit('chat:join', { chatId });
   }
 
   leaveChat(chatId: string): void {
-    this.emit('leave_chat', { chatId });
+    this.emit('chat:leave', { chatId });
   }
 
   sendMessage(data: {
@@ -233,27 +251,27 @@ class SocketServiceImpl implements SocketService {
     fileName?: string;
     fileSize?: number;
   }): void {
-    this.emit('send_message', data);
+    this.emit('message:send', data);
   }
 
-  editMessage(messageId: string, content: string): void {
-    this.emit('edit_message', { messageId, content });
+  editMessage(messageId: string, content: string, chatId: string): void {
+    this.emit('message:edit', { messageId, content });
   }
 
-  deleteMessage(messageId: string): void {
-    this.emit('delete_message', { messageId });
+  deleteMessage(messageId: string, chatId: string): void {
+    this.emit('message:delete', { messageId, chatId });
   }
 
-  markMessagesRead(messageIds: string[]): void {
-    this.emit('mark_messages_read', { messageIds });
+  markMessagesRead(chatId: string, messageIds: string[]): void {
+    this.emit('message:mark_read', { chatId, messageIds });
   }
 
   startTyping(chatId: string): void {
-    this.emit('typing_start', { chatId });
+    this.emit('typing:start', { chatId });
   }
 
   stopTyping(chatId: string): void {
-    this.emit('typing_stop', { chatId });
+    this.emit('typing:stop', { chatId });
   }
 
   // Request recent conversations (manual refresh)

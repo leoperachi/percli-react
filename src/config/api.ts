@@ -38,15 +38,25 @@ export const API_CONFIG = {
 
     // Chat endpoints
     CHATS: {
-      LIST: '/chats/',
-      CREATE: '/chats/',
+      LIST: '/chats',
+      CREATE: '/chats',
       GET_BY_ID: '/chats/:chatId',
       GET_OR_CREATE_DIRECT: '/chats/direct/:userId',
       UPDATE: '/chats/:chatId',
-      UNREAD_COUNT: '/chats/unread-count',
+      DELETE: '/chats/:chatId',
+      RECENT_CONVERSATIONS: '/chats/conversations/recent',
+      // Participants
+      ADD_PARTICIPANT: '/chats/:chatId/participants',
+      REMOVE_PARTICIPANT: '/chats/:chatId/participants/:participantId',
+      LIST_PARTICIPANTS: '/chats/:chatId/participants',
+      // Messages
       MESSAGES: '/chats/:chatId/messages',
       SEND_MESSAGE: '/chats/:chatId/messages',
-      MARK_READ: '/chats/messages/mark-read',
+      EDIT_MESSAGE: '/chats/messages/:messageId',
+      DELETE_MESSAGE: '/chats/messages/:messageId',
+      MARK_READ: '/chats/:chatId/messages/read',
+      UNREAD_COUNT: '/chats/:chatId/messages/unread-count',
+      ALL_UNREAD: '/chats/messages/unread/all',
     },
 
     // Add more endpoints as needed

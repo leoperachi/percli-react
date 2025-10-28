@@ -484,14 +484,15 @@ class ApiService {
     );
   }
 
-  async createChat(
-    participantUserIds: string[],
-    chatName?: string,
-    chatType: 'direct' | 'group' = 'direct',
-  ): Promise<ApiResponse> {
+  async createChat(data: {
+    participantIds: string[];
+    name?: string;
+    description?: string;
+    isGroup: boolean;
+  }): Promise<ApiResponse> {
     return this.request(API_CONFIG.ENDPOINTS.CHATS.CREATE, {
       method: 'POST',
-      body: JSON.stringify({ participantUserIds, chatName, chatType }),
+      body: JSON.stringify(data),
     });
   }
 
@@ -525,24 +526,125 @@ class ApiService {
 
   async sendChatMessage(
     chatId: string,
-    content: string,
-    messageType: 'text' | 'image' | 'file' = 'text',
-    replyToId?: string,
+    data: {
+      content?: string;
+      messageType: 'text' | 'image' | 'file';
+      replyToId?: string;
+      fileUrl?: string;
+      fileName?: string;
+      fileSize?: number;
+    },
   ): Promise<ApiResponse> {
     return this.request(
       API_CONFIG.ENDPOINTS.CHATS.SEND_MESSAGE.replace(':chatId', chatId),
       {
         method: 'POST',
-        body: JSON.stringify({ content, messageType, replyToId }),
+        body: JSON.stringify(data),
       },
     );
   }
 
-  async markMessagesAsRead(messageIds: string[]): Promise<ApiResponse> {
-    return this.request(API_CONFIG.ENDPOINTS.CHATS.MARK_READ, {
-      method: 'POST',
-      body: JSON.stringify({ messageIds }),
+  async editMessage(messageId: string, content: string): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.EDIT_MESSAGE.replace(':messageId', messageId),
+      {
+        method: 'PUT',
+        body: JSON.stringify({ content }),
+      },
+    );
+  }
+
+  async deleteMessage(messageId: string): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.DELETE_MESSAGE.replace(':messageId', messageId),
+      {
+        method: 'DELETE',
+      },
+    );
+  }
+
+  async markMessagesAsRead(chatId: string, messageIds: string[]): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.MARK_READ.replace(':chatId', chatId),
+      {
+        method: 'POST',
+        body: JSON.stringify({ messageIds }),
+      },
+    );
+  }
+
+  async getUnreadCount(chatId: string): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.UNREAD_COUNT.replace(':chatId', chatId),
+      {
+        method: 'GET',
+      },
+    );
+  }
+
+  async getAllUnreadMessages(): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.ALL_UNREAD, {
+      method: 'GET',
     });
+  }
+
+  async getRecentConversations(): Promise<ApiResponse> {
+    return this.request(API_CONFIG.ENDPOINTS.CHATS.RECENT_CONVERSATIONS, {
+      method: 'GET',
+    });
+  }
+
+  async updateChat(chatId: string, data: { name?: string; description?: string }): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.UPDATE.replace(':chatId', chatId),
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      },
+    );
+  }
+
+  async deleteChat(chatId: string): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.DELETE.replace(':chatId', chatId),
+      {
+        method: 'DELETE',
+      },
+    );
+  }
+
+  async addParticipant(
+    chatId: string,
+    userId: string,
+    role: 'member' | 'admin' | 'owner' = 'member',
+  ): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.ADD_PARTICIPANT.replace(':chatId', chatId),
+      {
+        method: 'POST',
+        body: JSON.stringify({ userId, role }),
+      },
+    );
+  }
+
+  async removeParticipant(chatId: string, participantId: string): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.REMOVE_PARTICIPANT
+        .replace(':chatId', chatId)
+        .replace(':participantId', participantId),
+      {
+        method: 'DELETE',
+      },
+    );
+  }
+
+  async listParticipants(chatId: string): Promise<ApiResponse> {
+    return this.request(
+      API_CONFIG.ENDPOINTS.CHATS.LIST_PARTICIPANTS.replace(':chatId', chatId),
+      {
+        method: 'GET',
+      },
+    );
   }
 
   async getUnreadMessagesCount(): Promise<ApiResponse> {

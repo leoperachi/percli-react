@@ -13,6 +13,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import { socketService } from '../services/socketService';
 import { ProfilePhoto } from './profilePhoto';
+import apiService from '../services/apiService';
 
 interface RecentConversation {
   userId: string;
@@ -35,69 +36,52 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // Listen for socket events
+  // Load conversations via API HTTP (primary method)
   useEffect(() => {
-    console.log('[RightDrawer] Iniciando configuração do socket');
+    const loadConversations = async () => {
+      try {
+        setLoading(true);
+        console.log('[RightDrawer] Carregando conversas via API HTTP...');
 
-    // Connect socket if not connected
-    if (!socketService.isConnected()) {
-      console.log('[RightDrawer] Socket não conectado, iniciando conexão...');
-      socketService.connect();
-    } else {
-      console.log('[RightDrawer] Socket já está conectado');
-    }
+        const response = await apiService.getRecentConversations();
+        console.log('[RightDrawer] Resposta da API:', response);
 
+        if (response.success && response.data) {
+          // Backend pode retornar array diretamente ou dentro de data
+          const conversationsData = Array.isArray(response.data)
+            ? response.data
+            : response.data.conversations || [];
+
+          console.log('[RightDrawer] Conversas carregadas:', conversationsData.length);
+          setConversations(conversationsData);
+        } else {
+          console.log('[RightDrawer] Nenhuma conversa encontrada ou erro:', response.error);
+          setConversations([]);
+        }
+      } catch (error) {
+        console.error('[RightDrawer] Erro ao carregar conversas:', error);
+        setConversations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Carrega imediatamente ao montar
+    loadConversations();
+
+    // Também configura listener do Socket para atualizações em tempo real
     const socket = socketService.getSocket();
     if (socket) {
-      console.log('[RightDrawer] Socket obtido, configurando listeners');
-
-      // Listen for recent conversations
-      const handleRecentConversations = (data: {
-        conversations: RecentConversation[];
-      }) => {
-        console.log('[RightDrawer] Recebeu recent_conversations:', data);
+      const handleRecentConversations = (data: { conversations: RecentConversation[] }) => {
+        console.log('[RightDrawer] Atualização de conversas via Socket:', data);
         setConversations(data.conversations || []);
-        setLoading(false);
       };
 
       socket.on('recent_conversations', handleRecentConversations);
 
-      // Wait for connection before requesting
-      socket.once('connect', () => {
-        console.log(
-          '[RightDrawer] Socket conectado, solicitando conversas recentes',
-        );
-        socketService.getRecentConversations();
-      });
-
-      // If already connected, request immediately
-      if (socket.connected) {
-        console.log(
-          '[RightDrawer] Socket já conectado, solicitando conversas imediatamente',
-        );
-        socketService.getRecentConversations();
-      }
-
-      // Listen for errors
-      socket.on('connect_error', error => {
-        console.error('[RightDrawer] Erro de conexão do socket:', error);
-        setLoading(false);
-      });
-
-      socket.on('error', error => {
-        console.error('[RightDrawer] Erro do socket:', error);
-      });
-
-      // Cleanup
       return () => {
-        console.log('[RightDrawer] Limpando listeners do socket');
         socket.off('recent_conversations', handleRecentConversations);
-        socket.off('connect_error');
-        socket.off('error');
       };
-    } else {
-      console.error('[RightDrawer] Não foi possível obter instância do socket');
-      setLoading(false);
     }
   }, []);
 

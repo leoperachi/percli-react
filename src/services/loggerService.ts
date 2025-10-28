@@ -128,23 +128,13 @@ class LoggerService {
    */
   async getLogs(): Promise<LogEntry[]> {
     try {
-      this.originalConsole.log(
-        '[LoggerService] Buscando logs do AsyncStorage...',
-      );
       const logsJson = await AsyncStorage.getItem(LOG_STORAGE_KEY);
 
       if (logsJson) {
         this.logs = JSON.parse(logsJson);
-        this.originalConsole.log(
-          '[LoggerService] Logs encontrados:',
-          this.logs.length,
-        );
         return this.logs;
       }
 
-      this.originalConsole.log(
-        '[LoggerService] Nenhum log encontrado no AsyncStorage',
-      );
       return [];
     } catch (error) {
       this.originalConsole.error(
@@ -160,23 +150,14 @@ class LoggerService {
    */
   async clearLogs(): Promise<void> {
     try {
-      this.originalConsole.log('[LoggerService] Iniciando limpeza de logs...');
-      this.originalConsole.log(
-        '[LoggerService] Logs em memória antes:',
-        this.logs.length,
-      );
-
-      // Limpa array em memória
+      // Limpa array em memória primeiro
       this.logs = [];
 
       // Remove do AsyncStorage
       await AsyncStorage.removeItem(LOG_STORAGE_KEY);
 
+      // Usa console original para não adicionar logs durante a limpeza
       this.originalConsole.log('[LoggerService] ✅ Logs limpos com sucesso!');
-      this.originalConsole.log(
-        '[LoggerService] Logs em memória agora:',
-        this.logs.length,
-      );
     } catch (error) {
       this.originalConsole.error(
         '[LoggerService] ❌ Erro ao limpar logs:',

@@ -17,6 +17,7 @@ import { useChatContext } from '../contexts/ChatContext';
 import type { Chat } from '../types';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { ProfilePhoto } from '../components/profilePhoto';
+import { safeGoBack } from '../utils/navigationHelpers';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -150,29 +151,41 @@ export function ChatListScreen() {
   }, [loadChats]);
 
   const handleBackPress = () => {
-    navigation.goBack();
+    safeGoBack(navigation, 'Home');
   };
 
   const handleChatPress = async (chat: Chat) => {
     try {
       setLoadingChatId(chat.id);
+      console.log('[ChatListScreen] Abrindo chat:', chat.id);
 
       // Get the participant user ID
       const participantId = chat.participants[0]?.id;
 
       if (!participantId) {
+        console.error('[ChatListScreen] ID do participante não encontrado:', chat);
         Alert.alert('Erro', 'ID do usuário não encontrado');
+        setLoadingChatId(null);
         return;
       }
+
+      console.log('[ChatListScreen] Buscando/criando chat para participante:', participantId);
+
       // Call the endpoint to get or create the direct chat
       const updatedChat = await createChat(participantId);
+      console.log('[ChatListScreen] Chat retornado:', updatedChat);
 
       if (!updatedChat) {
+        console.error('[ChatListScreen] Chat não foi criado/encontrado');
         Alert.alert('Erro', 'Não foi possível acessar o chat');
+        setLoadingChatId(null);
         return;
       }
+
       // Set the current chat and navigate
+      console.log('[ChatListScreen] Setando currentChat e navegando');
       setCurrentChat(updatedChat);
+
       navigation.navigate('Chat', {
         chatId: updatedChat.id,
         chatName:
@@ -180,7 +193,8 @@ export function ChatListScreen() {
         userId: updatedChat.participants[0]?.id || '',
       });
     } catch (error) {
-      Alert.alert('Erro', 'Erro ao acessar o chat');
+      console.error('[ChatListScreen] Erro ao acessar o chat:', error);
+      Alert.alert('Erro', `Erro ao acessar o chat: ${error}`);
     } finally {
       setLoadingChatId(null);
     }

@@ -126,32 +126,87 @@ export function ChatProvider({ children }: ChatProviderProps) {
       // Listen for new messages
       const socket = socketService.getSocket();
       if (socket) {
-        const handleNewMessage = (message: ChatMessage) => {
-          dispatch({ type: 'ADD_MESSAGE', payload: message });
+        const handleNewMessage = (message: any) => {
+          console.log('[ChatContext] Nova mensagem recebida:', message);
+          // Transform backend message to ChatMessage format
+          const chatMessage: ChatMessage = {
+            id: message.id || message._id,
+            text: message.content || '',
+            senderId: message.senderId || message.sender?.id,
+            receiverId: message.receiverId || '',
+            chatId: message.chatId,
+            timestamp: message.createdAt || message.timestamp,
+            isRead: message.isRead || false,
+            messageType: message.messageType || 'text',
+            replyTo: message.replyToId,
+            fileUrl: message.fileUrl,
+            fileName: message.fileName,
+          };
+          dispatch({ type: 'ADD_MESSAGE', payload: chatMessage });
         };
 
-        const handleMessageEdited = (message: ChatMessage) => {
-          dispatch({ type: 'UPDATE_MESSAGE', payload: message });
+        const handleMessageEdited = (message: any) => {
+          console.log('[ChatContext] Mensagem editada:', message);
+          const chatMessage: ChatMessage = {
+            id: message.id || message._id,
+            text: message.content || '',
+            senderId: message.senderId || message.sender?.id,
+            receiverId: message.receiverId || '',
+            chatId: message.chatId,
+            timestamp: message.createdAt || message.timestamp,
+            isRead: message.isRead || false,
+            messageType: message.messageType || 'text',
+            replyTo: message.replyToId,
+            fileUrl: message.fileUrl,
+            fileName: message.fileName,
+          };
+          dispatch({ type: 'UPDATE_MESSAGE', payload: chatMessage });
         };
 
-        const handleMessageDeleted = (data: { messageId: string }) => {
+        const handleMessageDeleted = (data: { messageId: string; chatId: string }) => {
+          console.log('[ChatContext] Mensagem deletada:', data);
           dispatch({ type: 'DELETE_MESSAGE', payload: data.messageId });
         };
 
-        const handleUnreadCount = (data: { unreadMessages: any }) => {
+        const handleUnreadCount = (data: { unreadMessages: any[] }) => {
+          console.log('[ChatContext] Contagem de não lidas:', data);
+          // Update unread counts for chats
         };
 
-        socket.on('new_message', handleNewMessage);
-        socket.on('message_edited', handleMessageEdited);
-        socket.on('message_deleted', handleMessageDeleted);
+        const handleRecentConversations = (data: { conversations: any[] }) => {
+          console.log('[ChatContext] Conversas recentes:', data);
+          // Could update chats list here
+        };
+
+        // Listen to backend events (with correct event names)
+        socket.on('message:new', handleNewMessage);
+        socket.on('message:edited', handleMessageEdited);
+        socket.on('message:deleted', handleMessageDeleted);
         socket.on('unread_messages_count', handleUnreadCount);
+        socket.on('recent_conversations', handleRecentConversations);
+
+        // Join user room when connected (or immediately if already connected)
+        const joinUserRoom = () => {
+          console.log('[ChatContext] Entrando no room do usuário:', user.id, user.name);
+          socketService.joinUser(user.id, user.name);
+        };
+
+        if (socket.connected) {
+          // If already connected, join immediately
+          joinUserRoom();
+        } else {
+          // Wait for connection
+          socket.once('connect', joinUserRoom);
+        }
 
         // Cleanup listeners on unmount, but don't disconnect socket
         return () => {
-          socket.off('new_message', handleNewMessage);
-          socket.off('message_edited', handleMessageEdited);
-          socket.off('message_deleted', handleMessageDeleted);
+          socket.off('message:new', handleNewMessage);
+          socket.off('message:edited', handleMessageEdited);
+          socket.off('message:deleted', handleMessageDeleted);
           socket.off('unread_messages_count', handleUnreadCount);
+          socket.off('recent_conversations', handleRecentConversations);
+          socket.off('connect', joinUserRoom);
         };
       }
     } else if (!user) {
@@ -218,24 +273,23 @@ export function ChatProvider({ children }: ChatProviderProps) {
       try {
         if (!user || !state.currentChat) return;
 
-        const newMessage: ChatMessage = {
-          id: `msg-${Date.now()}`,
-          text,
-          senderId: user.id,
-          receiverId,
+        // Send via Socket.IO for real-time delivery
+        socketService.sendMessage({
           chatId: state.currentChat.id,
-          timestamp: new Date().toISOString(),
-          isRead: false,
+          content: text,
           messageType: 'text',
-          replyTo,
-        };
+          replyToId: replyTo,
+        });
 
-        // Optimistically add message
-        dispatch({ type: 'ADD_MESSAGE', payload: newMessage });
+        // Also send via HTTP as fallback
+        await apiService.sendChatMessage(state.currentChat.id, {
+          content: text,
+          messageType: 'text',
+          replyToId: replyTo,
+        });
 
-        // Simulate API call
-        await new Promise<void>(resolve => setTimeout(resolve, 200));
       } catch (error) {
+        console.error('[ChatContext] Erro ao enviar mensagem:', error);
         dispatch({ type: 'SET_ERROR', payload: 'Erro ao enviar mensagem' });
       }
     },
@@ -244,14 +298,25 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
   const markAsRead = useCallback(async (chatId: string): Promise<void> => {
     try {
-      // Simulate API call
-      await new Promise<void>(resolve => setTimeout(resolve, 100));
+      // Get unread message IDs for this chat
+      const unreadMessageIds = state.messages
+        .filter(m => m.chatId === chatId && !m.isRead)
+        .map(m => m.id);
+
+      if (unreadMessageIds.length > 0) {
+        // Mark as read via Socket.IO
+        socketService.markMessagesRead(chatId, unreadMessageIds);
+
+        // Also mark via HTTP
+        await apiService.markMessagesAsRead(chatId, unreadMessageIds);
+      }
 
       dispatch({ type: 'MARK_MESSAGES_AS_READ', payload: chatId });
     } catch (error) {
+      console.error('[ChatContext] Erro ao marcar como lida:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Erro ao marcar como lida' });
     }
-  }, []);
+  }, [state.messages]);
 
   const createChat = useCallback(
     async (participantId: string): Promise<Chat | null> => {
@@ -295,13 +360,23 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
   const setCurrentChat = useCallback(
     (chat: Chat | null) => {
+      // Leave previous chat room
+      if (state.currentChat) {
+        socketService.leaveChat(state.currentChat.id);
+      }
+
       dispatch({ type: 'SET_CURRENT_CHAT', payload: chat });
+
       if (chat) {
+        // Join new chat room via Socket.IO
+        socketService.joinChat(chat.id);
+
+        // Load messages and mark as read
         loadMessages(chat.id);
         markAsRead(chat.id);
       }
     },
-    [loadMessages, markAsRead],
+    [state.currentChat, loadMessages, markAsRead],
   );
 
   const clearMessages = useCallback(() => {

@@ -40,7 +40,7 @@ export interface User {
   roleName?: string;
   isActive?: boolean;
   emailVerified?: boolean;
-  // profilePhoto?: string;
+  profilePhoto?: string; // Alias para profilePicture
   profilePicture?: string;
   createdAt: string;
   updatedAt: string;

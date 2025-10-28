@@ -39,9 +39,7 @@ export const LogViewerScreen = () => {
   }, [logs, activeFilter]);
 
   const loadLogs = async () => {
-    console.log('[LogViewerScreen] Carregando logs...');
     const loadedLogs = await logger.getLogs();
-    console.log('[LogViewerScreen] Logs carregados:', loadedLogs.length);
     setLogs(loadedLogs);
   };
 
@@ -67,11 +65,8 @@ export const LogViewerScreen = () => {
         style: 'destructive',
         onPress: async () => {
           try {
-            console.log('[LogViewerScreen] Limpando logs...');
-
             // Limpa os logs
             await logger.clearLogs();
-            console.log('[LogViewerScreen] Logs limpos, recarregando...');
 
             // Limpa o estado local imediatamente
             setLogs([]);
@@ -79,12 +74,10 @@ export const LogViewerScreen = () => {
 
             // Recarrega do storage (deve estar vazio agora)
             await loadLogs();
-            console.log('[LogViewerScreen] Logs recarregados após limpar');
 
             // Mostra confirmação
             Alert.alert('Sucesso', 'Logs limpos com sucesso!');
           } catch (error) {
-            console.error('[LogViewerScreen] Erro ao limpar logs:', error);
             Alert.alert('Erro', 'Falha ao limpar logs. Tente novamente.');
           }
         },
@@ -353,7 +346,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   filterTextActive: {
-    color: '#fff',
+    color: '#000',
     fontWeight: '600',
   },
   logsContainer: {
