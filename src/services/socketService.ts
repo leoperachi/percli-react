@@ -266,12 +266,12 @@ class SocketServiceImpl implements SocketService {
     this.emit('message:mark_read', { chatId, messageIds });
   }
 
-  startTyping(chatId: string): void {
-    this.emit('typing:start', { chatId });
+  startTyping(chatId: string, userName?: string): void {
+    this.emit('typing:start', { chatId, userName });
   }
 
-  stopTyping(chatId: string): void {
-    this.emit('typing:stop', { chatId });
+  stopTyping(chatId: string, userName?: string): void {
+    this.emit('typing:stop', { chatId, userName });
   }
 
   // Request recent conversations (manual refresh)

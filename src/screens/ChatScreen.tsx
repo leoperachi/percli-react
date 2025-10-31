@@ -23,7 +23,11 @@ import { useAppContext } from '../contexts/AppContext';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { ProfilePhoto } from '../components/profilePhoto';
 import { safeGoBack } from '../utils/navigationHelpers';
-import { formatFullDate, formatDateTime, isSameDay } from '../utils/dateHelpers';
+import {
+  formatFullDate,
+  formatDateTime,
+  isSameDay,
+} from '../utils/dateHelpers';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -44,7 +48,9 @@ export function ChatScreen() {
     deleteMessage,
   } = useChatContext();
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
-  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(
+    null,
+  );
   const flatListRef = useRef<FlatList>(null);
 
   // Get route parameters
@@ -54,11 +60,13 @@ export function ChatScreen() {
 
   // Create chat from route parameters and load messages
   useEffect(() => {
+    console.log('[ChatScreen] useEffect params:', params);
+    console.log('[ChatScreen] currentChat:', currentChat);
     if (params && (!currentChat || currentChat.id !== params.chatId)) {
       console.log('[ChatScreen] Criando novo chat a partir de params:', {
         chatId: params.chatId,
         chatName: params.chatName,
-        userId: params.userId
+        userId: params.userId,
       });
 
       const newChat = {
@@ -78,10 +86,13 @@ export function ChatScreen() {
         updatedAt: new Date().toISOString(),
       };
 
-      console.log('[ChatScreen] Setando currentChat:', newChat.id);
-      setCurrentChat(newChat);
+      // console.log('[ChatScreen] Leo:', newChat);
+      // setCurrentChat(newChat);
     } else if (params) {
-      console.log('[ChatScreen] Chat já está selecionado:', currentChat?.id);
+      if (currentChat) {
+        currentChat!.name = params.chatName;
+      }
+      console.log('[ChatScreen] Chat já está selecionado:', currentChat);
     }
   }, [params, currentChat, setCurrentChat]);
 
@@ -136,7 +147,7 @@ export function ChatScreen() {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -157,7 +168,11 @@ export function ChatScreen() {
     if (isOwnMessage) {
       options.push(
         { text: 'Editar', onPress: () => handleEdit(message) },
-        { text: 'Deletar', onPress: () => handleDelete(message), style: 'destructive' }
+        {
+          text: 'Deletar',
+          onPress: () => handleDelete(message),
+          style: 'destructive',
+        },
       );
     }
 
@@ -167,9 +182,10 @@ export function ChatScreen() {
   };
 
   const handleChatInfo = () => {
+    console.log('[ChatScreen] Informações do chat:', currentChat);
     const participant = currentChat?.participants[0];
     const displayName =
-      currentChat?.chatName || participant?.name || 'Usuário Desconhecido';
+      currentChat?.name || participant?.name || 'Usuário Desconhecido';
 
     Alert.alert(
       'Informações do Chat',
@@ -189,8 +205,7 @@ export function ChatScreen() {
   }) => {
     const previousMessage = index > 0 ? messages[index - 1] : null;
     const showDateSeparator =
-      !previousMessage ||
-      !isSameDay(item.timestamp, previousMessage.timestamp);
+      !previousMessage || !isSameDay(item.timestamp, previousMessage.timestamp);
 
     return (
       <View>
@@ -258,7 +273,7 @@ export function ChatScreen() {
 
   const participant = currentChat.participants[0];
   const displayName =
-    currentChat.chatName || participant?.name || 'Usuário Desconhecido';
+    currentChat.name || participant?.name || 'Usuário Desconhecido';
 
   return (
     <SafeAreaView

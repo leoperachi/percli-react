@@ -173,6 +173,7 @@ export interface Chat {
   lastMessage?: ChatMessage;
   lastActivity: string;
   unreadCount: number;
+  name: string;
   chatType: 'direct' | 'group';
   chatName?: string; // For group chats
   chatAvatar?: string; // For group chats

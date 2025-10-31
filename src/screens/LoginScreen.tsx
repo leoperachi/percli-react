@@ -19,8 +19,8 @@ Dimensions.get('window');
 export function LoginScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
-  const [email, setEmail] = useState('admin@percli.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('user@percli.com');
+  const [password, setPassword] = useState('user123');
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const { login, loading, loginWithGoogle } = useAppContext();
 

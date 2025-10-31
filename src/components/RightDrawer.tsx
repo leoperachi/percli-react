@@ -60,10 +60,16 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
             ? response.data
             : response.data.conversations || [];
 
-          console.log('[RightDrawer] Conversas carregadas:', conversationsData.length);
+          console.log(
+            '[RightDrawer] Conversas carregadas:',
+            conversationsData.length,
+          );
           setConversations(conversationsData);
         } else {
-          console.log('[RightDrawer] Nenhuma conversa encontrada ou erro:', response.error);
+          console.log(
+            '[RightDrawer] Nenhuma conversa encontrada ou erro:',
+            response.error,
+          );
           setConversations([]);
         }
       } catch (error) {
@@ -80,7 +86,9 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
     // Também configura listener do Socket para atualizações em tempo real
     const socket = socketService.getSocket();
     if (socket) {
-      const handleRecentConversations = (data: { conversations: RecentConversation[] }) => {
+      const handleRecentConversations = (data: {
+        conversations: RecentConversation[];
+      }) => {
         console.log('[RightDrawer] Atualização de conversas via Socket:', data);
         setConversations(data.conversations || []);
       };
@@ -96,7 +104,7 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
   const handleConversationPress = async (conversation: RecentConversation) => {
     try {
       setLoadingChatId(conversation.userId);
-      console.log('[RightDrawer] Abrindo conversa com:', conversation.userId, conversation.name);
+      console.log('[RightDrawer] Abrindo conversa com:', conversation);
 
       // First, get or create the chat using the API
       const chat = await createChat(conversation.userId);
@@ -265,7 +273,10 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                             {conversation.name}
                           </Text>
                           {isLoading && (
-                            <ActivityIndicator size="small" color={theme.colors.primary} />
+                            <ActivityIndicator
+                              size="small"
+                              color={theme.colors.primary}
+                            />
                           )}
                         </View>
                         <Text

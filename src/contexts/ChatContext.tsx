@@ -113,7 +113,13 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       };
     case 'ADD_TYPING_USER':
       // Only add if not already in list
-      if (state.typingUsers.some(u => u.userId === action.payload.userId && u.chatId === action.payload.chatId)) {
+      if (
+        state.typingUsers.some(
+          u =>
+            u.userId === action.payload.userId &&
+            u.chatId === action.payload.chatId,
+        )
+      ) {
         return state;
       }
       return {
@@ -197,7 +203,10 @@ export function ChatProvider({ children }: ChatProviderProps) {
           dispatch({ type: 'UPDATE_MESSAGE', payload: chatMessage });
         };
 
-        const handleMessageDeleted = (data: { messageId: string; chatId: string }) => {
+        const handleMessageDeleted = (data: {
+          messageId: string;
+          chatId: string;
+        }) => {
           console.log('[ChatContext] Mensagem deletada:', data);
           dispatch({ type: 'DELETE_MESSAGE', payload: data.messageId });
         };
@@ -212,7 +221,12 @@ export function ChatProvider({ children }: ChatProviderProps) {
           // Could update chats list here
         };
 
-        const handleUserTyping = (data: { userId: string; userName: string; chatId: string; isTyping: boolean }) => {
+        const handleUserTyping = (data: {
+          userId: string;
+          userName: string;
+          chatId: string;
+          isTyping: boolean;
+        }) => {
           console.log('[ChatContext] Usuário digitando:', data);
           const cleanedUserId = cleanUserId(data.userId);
 
@@ -245,7 +259,11 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
         // Join user room when connected (or immediately if already connected)
         const joinUserRoom = () => {
-          console.log('[ChatContext] Entrando no room do usuário:', user.id, user.name);
+          console.log(
+            '[ChatContext] Entrando no room do usuário:',
+            user.id,
+            user.name,
+          );
           socketService.joinUser(user.id, user.name);
         };
 
@@ -280,35 +298,56 @@ export function ChatProvider({ children }: ChatProviderProps) {
       dispatch({ type: 'SET_ERROR', payload: null });
       const response = await apiService.getUserChats(1, 20);
 
-      console.log('[ChatContext] Resposta completa da API:', JSON.stringify(response, null, 2));
+      console.log(
+        '[ChatContext] Resposta completa da API:',
+        JSON.stringify(response, null, 2),
+      );
 
       if (response.success && response.data) {
-        console.log('[ChatContext] Dados recebidos:', JSON.stringify(response.data, null, 2));
-        
+        console.log(
+          '[ChatContext] Dados recebidos:',
+          JSON.stringify(response.data, null, 2),
+        );
+
         // Try multiple possible response structures
         let chatsArray = [];
         if (Array.isArray(response.data)) {
           // Direct array response
           chatsArray = response.data;
-          console.log('[ChatContext] Array direto encontrado, tamanho:', chatsArray.length);
+          console.log(
+            '[ChatContext] Array direto encontrado, tamanho:',
+            chatsArray.length,
+          );
         } else if (response.data.chats) {
           // Object with chats property
           chatsArray = response.data.chats;
-          console.log('[ChatContext] Propriedade chats encontrada, tamanho:', chatsArray.length);
+          console.log(
+            '[ChatContext] Propriedade chats encontrada, tamanho:',
+            chatsArray.length,
+          );
         } else if (response.data.data && Array.isArray(response.data.data)) {
           // Nested data property
           chatsArray = response.data.data;
-          console.log('[ChatContext] Propriedade data.data encontrada, tamanho:', chatsArray.length);
+          console.log(
+            '[ChatContext] Propriedade data.data encontrada, tamanho:',
+            chatsArray.length,
+          );
         } else {
           console.warn('[ChatContext] Formato de resposta não reconhecido');
         }
-        
+
         // Validate and filter chats to ensure they have required fields
-        console.log('[ChatContext] Total de chats recebidos:', chatsArray.length);
+        console.log(
+          '[ChatContext] Total de chats recebidos:',
+          chatsArray.length,
+        );
 
         // Log first chat to see structure
         if (chatsArray.length > 0) {
-          console.log('[ChatContext] Estrutura do primeiro chat:', JSON.stringify(chatsArray[0], null, 2));
+          console.log(
+            '[ChatContext] Estrutura do primeiro chat:',
+            JSON.stringify(chatsArray[0], null, 2),
+          );
         }
 
         const validChats = chatsArray
@@ -318,7 +357,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
             if (!isValid) {
               console.warn('[ChatContext] Chat inválido (sem id):', {
-                chat: chat
+                chat: chat,
               });
             } else {
               console.log('[ChatContext] Chat com ID válido:', {
@@ -337,10 +376,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
             // Handle different participant structures
             let participants = [];
 
-            if (Array.isArray(chat.participants) && chat.participants.length > 0) {
+            if (
+              Array.isArray(chat.participants) &&
+              chat.participants.length > 0
+            ) {
               // Participants are already populated
               participants = chat.participants;
-            } else if (Array.isArray(chat.participantIds) && chat.participantIds.length > 0) {
+            } else if (
+              Array.isArray(chat.participantIds) &&
+              chat.participantIds.length > 0
+            ) {
               // Only IDs available - create minimal participant objects
               participants = chat.participantIds.map((id: string) => ({
                 id: cleanUserId(id),
@@ -349,38 +394,51 @@ export function ChatProvider({ children }: ChatProviderProps) {
               }));
             } else {
               // No participants at all - create a dummy one to prevent crashes
-              console.warn('[ChatContext] Chat sem participantes, criando dummy:', chat.id);
-              participants = [{
-                id: 'unknown',
-                name: 'Usuário',
-                isOnline: false,
-              }];
+              console.warn(
+                '[ChatContext] Chat sem participantes, criando dummy:',
+                chat.id,
+              );
+              participants = [
+                {
+                  id: 'unknown',
+                  name: 'Usuário',
+                  isOnline: false,
+                },
+              ];
             }
 
             console.log('[ChatContext] Processando chat:', {
               id: chat.id,
               name: chat.name || chat.chatName,
-              participantsCount: participants.length
+              participantsCount: participants.length,
             });
 
             return {
               ...chat,
-              chatName: chat.chatName || chat.name || participants[0]?.name || 'Chat',
+              chatName:
+                chat.chatName || chat.name || participants[0]?.name || 'Chat',
               participants: participants.map((participant: any) => ({
                 ...participant,
                 id: cleanUserId(participant.id || participant._id || 'unknown'),
                 name: participant.name || participant.username || 'Usuário',
               })),
               chatType: chat.chatType || (chat.isGroup ? 'group' : 'direct'),
-              lastActivity: chat.lastActivity || chat.updatedAt || new Date().toISOString(),
+              lastActivity:
+                chat.lastActivity || chat.updatedAt || new Date().toISOString(),
               unreadCount: chat.unreadCount || 0,
             };
           });
 
-        console.log('[ChatContext] Total de chats válidos após validação:', validChats.length);
+        console.log(
+          '[ChatContext] Total de chats válidos após validação:',
+          validChats.length,
+        );
 
         if (validChats.length > 0) {
-          console.log('[ChatContext] Primeiro chat processado:', JSON.stringify(validChats[0], null, 2));
+          console.log(
+            '[ChatContext] Primeiro chat processado:',
+            JSON.stringify(validChats[0], null, 2),
+          );
         }
 
         dispatch({ type: 'SET_CHATS', payload: validChats });
@@ -400,64 +458,113 @@ export function ChatProvider({ children }: ChatProviderProps) {
     }
   }, []);
 
-  const loadMessages = useCallback(async (chatId: string, retryCount: number = 0): Promise<void> => {
-    const MAX_RETRIES = 2;
+  const loadMessages = useCallback(
+    async (chatId: string, retryCount: number = 0): Promise<void> => {
+      const MAX_RETRIES = 2;
 
-    try {
-      console.log(`[ChatContext] Carregando mensagens para chat ${chatId}, tentativa ${retryCount + 1}`);
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'SET_ERROR', payload: null });
+      try {
+        console.log(
+          `[ChatContext] Carregando mensagens para chat ${chatId}, tentativa ${
+            retryCount + 1
+          }`,
+        );
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
 
-      const response = await apiService.getChatMessages(chatId, 1, 50);
+        const response = await apiService.getChatMessages(chatId, 1, 50);
 
-      if (response.success && response.data) {
-        console.log('[ChatContext] Resposta da API recebida:', JSON.stringify(response.data).substring(0, 200));
+        if (response.success && response.data) {
+          console.log(
+            '[ChatContext] Resposta da API recebida:',
+            JSON.stringify(response.data).substring(0, 200),
+          );
 
-        // Handle different response formats
-        let messagesArray = [];
-        if (Array.isArray(response.data)) {
-          messagesArray = response.data;
-        } else if (response.data.messages && Array.isArray(response.data.messages)) {
-          messagesArray = response.data.messages;
-        } else if (response.data.data && Array.isArray(response.data.data)) {
-          messagesArray = response.data.data;
+          // Handle different response formats
+          let messagesArray = [];
+          if (Array.isArray(response.data)) {
+            messagesArray = response.data;
+          } else if (
+            response.data.messages &&
+            Array.isArray(response.data.messages)
+          ) {
+            messagesArray = response.data.messages;
+          } else if (response.data.data && Array.isArray(response.data.data)) {
+            messagesArray = response.data.data;
+          }
+
+          console.log(
+            `[ChatContext] Total de mensagens encontradas: ${messagesArray.length}`,
+          );
+
+          // Transform API messages to ChatMessage format
+          const transformedMessages = messagesArray.map((message: any) => ({
+            id: message.id || message._id,
+            text: message.content || message.text || '',
+            senderId: cleanUserId(
+              message.senderId || message.sender?.id || message.sender,
+            ),
+            receiverId: cleanUserId(
+              message.receiverId || message.receiver?.id || message.receiver,
+            ),
+            chatId: message.chatId || chatId,
+            timestamp:
+              message.createdAt ||
+              message.timestamp ||
+              new Date().toISOString(),
+            isRead: message.isRead || false,
+            messageType: message.messageType || 'text',
+            replyTo: message.replyToId || message.replyTo,
+            fileUrl: message.fileUrl,
+            fileName: message.fileName,
+            fileSize: message.fileSize,
+            isEdited: message.isEdited || false,
+            isDeleted: message.isDeleted || false,
+            readBy: message.readBy || [],
+            createdAt: message.createdAt,
+            updatedAt: message.updatedAt,
+          }));
+
+          console.log(
+            '[ChatContext] Mensagens transformadas:',
+            transformedMessages.length,
+          );
+          dispatch({
+            type: 'SET_MESSAGES',
+            payload: transformedMessages,
+          });
+        } else {
+          const errorMessage = response.error || 'Falha ao carregar mensagens';
+          console.error('[ChatContext] Erro na resposta:', errorMessage);
+
+          // Retry on error if retries available
+          if (retryCount < MAX_RETRIES) {
+            console.log(
+              `[ChatContext] Tentando novamente (${
+                retryCount + 1
+              }/${MAX_RETRIES})...`,
+            );
+            setTimeout(() => {
+              loadMessages(chatId, retryCount + 1);
+            }, 1000 * (retryCount + 1)); // Exponential backoff
+            return;
+          }
+
+          dispatch({
+            type: 'SET_ERROR',
+            payload: errorMessage,
+          });
+          dispatch({ type: 'SET_MESSAGES', payload: [] });
         }
+      } catch (error) {
+        console.error('[ChatContext] Exceção ao carregar mensagens:', error);
 
-        console.log(`[ChatContext] Total de mensagens encontradas: ${messagesArray.length}`);
-
-        // Transform API messages to ChatMessage format
-        const transformedMessages = messagesArray.map((message: any) => ({
-          id: message.id || message._id,
-          text: message.content || message.text || '',
-          senderId: cleanUserId(message.senderId || message.sender?.id || message.sender),
-          receiverId: cleanUserId(message.receiverId || message.receiver?.id || message.receiver),
-          chatId: message.chatId || chatId,
-          timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
-          isRead: message.isRead || false,
-          messageType: message.messageType || 'text',
-          replyTo: message.replyToId || message.replyTo,
-          fileUrl: message.fileUrl,
-          fileName: message.fileName,
-          fileSize: message.fileSize,
-          isEdited: message.isEdited || false,
-          isDeleted: message.isDeleted || false,
-          readBy: message.readBy || [],
-          createdAt: message.createdAt,
-          updatedAt: message.updatedAt,
-        }));
-
-        console.log('[ChatContext] Mensagens transformadas:', transformedMessages.length);
-        dispatch({
-          type: 'SET_MESSAGES',
-          payload: transformedMessages,
-        });
-      } else {
-        const errorMessage = response.error || 'Falha ao carregar mensagens';
-        console.error('[ChatContext] Erro na resposta:', errorMessage);
-
-        // Retry on error if retries available
+        // Retry on exception if retries available
         if (retryCount < MAX_RETRIES) {
-          console.log(`[ChatContext] Tentando novamente (${retryCount + 1}/${MAX_RETRIES})...`);
+          console.log(
+            `[ChatContext] Tentando novamente após exceção (${
+              retryCount + 1
+            }/${MAX_RETRIES})...`,
+          );
           setTimeout(() => {
             loadMessages(chatId, retryCount + 1);
           }, 1000 * (retryCount + 1)); // Exponential backoff
@@ -466,28 +573,15 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
         dispatch({
           type: 'SET_ERROR',
-          payload: errorMessage,
+          payload: 'Erro ao carregar mensagens. Tente novamente.',
         });
         dispatch({ type: 'SET_MESSAGES', payload: [] });
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
-    } catch (error) {
-      console.error('[ChatContext] Exceção ao carregar mensagens:', error);
-
-      // Retry on exception if retries available
-      if (retryCount < MAX_RETRIES) {
-        console.log(`[ChatContext] Tentando novamente após exceção (${retryCount + 1}/${MAX_RETRIES})...`);
-        setTimeout(() => {
-          loadMessages(chatId, retryCount + 1);
-        }, 1000 * (retryCount + 1)); // Exponential backoff
-        return;
-      }
-
-      dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar mensagens. Tente novamente.' });
-      dispatch({ type: 'SET_MESSAGES', payload: [] });
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, []);
+    },
+    [],
+  );
 
   const sendMessage = useCallback(
     async (
@@ -512,7 +606,6 @@ export function ChatProvider({ children }: ChatProviderProps) {
           messageType: 'text',
           replyToId: replyTo,
         });
-
       } catch (error) {
         console.error('[ChatContext] Erro ao enviar mensagem:', error);
         dispatch({ type: 'SET_ERROR', payload: 'Erro ao enviar mensagem' });
@@ -521,27 +614,30 @@ export function ChatProvider({ children }: ChatProviderProps) {
     [user, state.currentChat],
   );
 
-  const markAsRead = useCallback(async (chatId: string): Promise<void> => {
-    try {
-      // Get unread message IDs for this chat
-      const unreadMessageIds = state.messages
-        .filter(m => m.chatId === chatId && !m.isRead)
-        .map(m => m.id);
+  const markAsRead = useCallback(
+    async (chatId: string): Promise<void> => {
+      try {
+        // Get unread message IDs for this chat
+        const unreadMessageIds = state.messages
+          .filter(m => m.chatId === chatId && !m.isRead)
+          .map(m => m.id);
 
-      if (unreadMessageIds.length > 0) {
-        // Mark as read via Socket.IO
-        socketService.markMessagesRead(chatId, unreadMessageIds);
+        if (unreadMessageIds.length > 0) {
+          // Mark as read via Socket.IO
+          socketService.markMessagesRead(chatId, unreadMessageIds);
 
-        // Also mark via HTTP
-        await apiService.markMessagesAsRead(chatId, unreadMessageIds);
+          // Also mark via HTTP
+          await apiService.markMessagesAsRead(chatId, unreadMessageIds);
+        }
+
+        dispatch({ type: 'MARK_MESSAGES_AS_READ', payload: chatId });
+      } catch (error) {
+        console.error('[ChatContext] Erro ao marcar como lida:', error);
+        dispatch({ type: 'SET_ERROR', payload: 'Erro ao marcar como lida' });
       }
-
-      dispatch({ type: 'MARK_MESSAGES_AS_READ', payload: chatId });
-    } catch (error) {
-      console.error('[ChatContext] Erro ao marcar como lida:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Erro ao marcar como lida' });
-    }
-  }, [state.messages]);
+    },
+    [state.messages],
+  );
 
   const createChat = useCallback(
     async (participantId: string): Promise<Chat | null> => {
@@ -555,10 +651,12 @@ export function ChatProvider({ children }: ChatProviderProps) {
           // Clean participant IDs
           const chat = {
             ...rawChat,
-            participants: (rawChat.participants || []).map((participant: any) => ({
-              ...participant,
-              id: cleanUserId(participant.id),
-            })),
+            participants: (rawChat.participants || []).map(
+              (participant: any) => ({
+                ...participant,
+                id: cleanUserId(participant.id),
+              }),
+            ),
           };
 
           // Check if chat already exists in state
@@ -594,6 +692,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
 
   const setCurrentChat = useCallback(
     async (chat: Chat | null) => {
+      console.log('[ChatContext] Setando currentChat:', chat);
       // Prevent setting the same chat again
       if (state.currentChat?.id === chat?.id) {
         console.log('[ChatContext] Chat já está selecionado, ignorando');
@@ -616,17 +715,23 @@ export function ChatProvider({ children }: ChatProviderProps) {
           id: chat.id,
           chatName: chat.chatName,
           participants: chat.participants?.length,
-          chatType: chat.chatType
+          chatType: chat.chatType,
         });
 
         // Join new chat room via Socket.IO
         socketService.joinChat(chat.id);
 
         // Load messages first, then mark as read
-        console.log('[ChatContext] Iniciando carregamento de mensagens para chat:', chat.id);
+        console.log(
+          '[ChatContext] Iniciando carregamento de mensagens para chat:',
+          chat.id,
+        );
         try {
           await loadMessages(chat.id);
-          console.log('[ChatContext] Mensagens carregadas com sucesso para chat:', chat.id);
+          console.log(
+            '[ChatContext] Mensagens carregadas com sucesso para chat:',
+            chat.id,
+          );
           await markAsRead(chat.id);
         } catch (error) {
           console.error('[ChatContext] Erro ao configurar chat:', error);
@@ -701,16 +806,16 @@ export function ChatProvider({ children }: ChatProviderProps) {
   );
 
   const startTyping = useCallback(() => {
-    if (state.currentChat) {
-      socketService.startTyping(state.currentChat.id);
+    if (state.currentChat && user) {
+      socketService.startTyping(state.currentChat.id, user.name);
     }
-  }, [state.currentChat]);
+  }, [state.currentChat, user]);
 
   const stopTyping = useCallback(() => {
-    if (state.currentChat) {
-      socketService.stopTyping(state.currentChat.id);
+    if (state.currentChat && user) {
+      socketService.stopTyping(state.currentChat.id, user.name);
     }
-  }, [state.currentChat]);
+  }, [state.currentChat, user]);
 
   const clearMessages = useCallback(() => {
     dispatch({ type: 'CLEAR_MESSAGES' });

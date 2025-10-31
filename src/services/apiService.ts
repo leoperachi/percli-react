@@ -105,7 +105,6 @@ class ApiService {
 
       // Handle server response format - convert to ApiResponse format
       const serverData = response.data;
-      console.log('[ApiService] Resposta bruta do servidor para', endpoint, ':', JSON.stringify(serverData, null, 2));
 
       // Check if server returned success (status 200-299)
       const isSuccess = response.status >= 200 && response.status < 300;
@@ -468,14 +467,22 @@ class ApiService {
     page: number = 1,
     limit: number = 20,
   ): Promise<ApiResponse> {
-    console.log('[ApiService] Buscando conversas, page:', page, 'limit:', limit);
+    console.log(
+      '[ApiService] Buscando conversas, page:',
+      page,
+      'limit:',
+      limit,
+    );
     const result = await this.request(
       `${API_CONFIG.ENDPOINTS.CHATS.LIST}?page=${page}&limit=${limit}`,
       {
         method: 'GET',
       },
     );
-    console.log('[ApiService] Resultado getUserChats:', JSON.stringify(result, null, 2));
+    console.log(
+      '[ApiService] Resultado getUserChats:',
+      JSON.stringify(result, null, 2),
+    );
     return result;
   }
 
@@ -517,7 +524,9 @@ class ApiService {
     page: number = 1,
     limit: number = 50,
   ): Promise<ApiResponse> {
-    console.log(`[ApiService] Buscando mensagens do chat ${chatId}, page=${page}, limit=${limit}`);
+    console.log(
+      `[ApiService] Buscando mensagens do chat ${chatId}, page=${page}, limit=${limit}`,
+    );
     const result = await this.request(
       `${API_CONFIG.ENDPOINTS.CHATS.MESSAGES.replace(
         ':chatId',
@@ -532,7 +541,9 @@ class ApiService {
       hasData: !!result.data,
       dataKeys: result.data ? Object.keys(result.data) : [],
       error: result.error,
-      dataPreview: result.data ? JSON.stringify(result.data).substring(0, 300) : null
+      dataPreview: result.data
+        ? JSON.stringify(result.data).substring(0, 300)
+        : null,
     });
     return result;
   }
@@ -569,14 +580,20 @@ class ApiService {
 
   async deleteMessage(messageId: string): Promise<ApiResponse> {
     return this.request(
-      API_CONFIG.ENDPOINTS.CHATS.DELETE_MESSAGE.replace(':messageId', messageId),
+      API_CONFIG.ENDPOINTS.CHATS.DELETE_MESSAGE.replace(
+        ':messageId',
+        messageId,
+      ),
       {
         method: 'DELETE',
       },
     );
   }
 
-  async markMessagesAsRead(chatId: string, messageIds: string[]): Promise<ApiResponse> {
+  async markMessagesAsRead(
+    chatId: string,
+    messageIds: string[],
+  ): Promise<ApiResponse> {
     return this.request(
       API_CONFIG.ENDPOINTS.CHATS.MARK_READ.replace(':chatId', chatId),
       {
@@ -607,7 +624,10 @@ class ApiService {
     });
   }
 
-  async updateChat(chatId: string, data: { name?: string; description?: string }): Promise<ApiResponse> {
+  async updateChat(
+    chatId: string,
+    data: { name?: string; description?: string },
+  ): Promise<ApiResponse> {
     return this.request(
       API_CONFIG.ENDPOINTS.CHATS.UPDATE.replace(':chatId', chatId),
       {
@@ -640,11 +660,15 @@ class ApiService {
     );
   }
 
-  async removeParticipant(chatId: string, participantId: string): Promise<ApiResponse> {
+  async removeParticipant(
+    chatId: string,
+    participantId: string,
+  ): Promise<ApiResponse> {
     return this.request(
-      API_CONFIG.ENDPOINTS.CHATS.REMOVE_PARTICIPANT
-        .replace(':chatId', chatId)
-        .replace(':participantId', participantId),
+      API_CONFIG.ENDPOINTS.CHATS.REMOVE_PARTICIPANT.replace(
+        ':chatId',
+        chatId,
+      ).replace(':participantId', participantId),
       {
         method: 'DELETE',
       },
