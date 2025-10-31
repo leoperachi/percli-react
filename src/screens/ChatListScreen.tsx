@@ -18,6 +18,7 @@ import type { Chat } from '../types';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { ProfilePhoto } from '../components/profilePhoto';
 import { safeGoBack } from '../utils/navigationHelpers';
+import { formatChatListTime } from '../utils/dateHelpers';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -30,28 +31,15 @@ interface ChatItemProps {
 function ChatItem({ chat, onPress, isLoading }: ChatItemProps) {
   const { theme } = useTheme();
 
-  const participant = chat.participants[0];
+  // Validate chat object
+  if (!chat) {
+    return null;
+  }
+
+  // Safely access participants with validation
+  const participant = chat?.participants?.[0];
   const displayName =
-    chat.chatName || participant?.name || 'Usuário Desconhecido';
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours =
-      Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } else {
-      return date.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-      });
-    }
-  };
+    chat?.chatName || participant?.name || 'Usuário Desconhecido';
 
   return (
     <TouchableOpacity
@@ -89,11 +77,11 @@ function ChatItem({ chat, onPress, isLoading }: ChatItemProps) {
           >
             {displayName}
           </Text>
-          {chat.lastMessage && !isLoading && (
+          {chat?.lastMessage && !isLoading && chat?.lastActivity && (
             <Text
               style={[styles.timestamp, { color: theme.colors.textSecondary }]}
             >
-              {formatTime(chat.lastActivity)}
+              {formatChatListTime(chat.lastActivity)}
             </Text>
           )}
           {isLoading && (
@@ -106,7 +94,7 @@ function ChatItem({ chat, onPress, isLoading }: ChatItemProps) {
             style={[
               styles.lastMessage,
               { color: theme.colors.textSecondary },
-              chat.unreadCount > 0 && {
+              (chat?.unreadCount ?? 0) > 0 && {
                 fontWeight: '600',
                 color: theme.colors.text,
               },
@@ -115,10 +103,10 @@ function ChatItem({ chat, onPress, isLoading }: ChatItemProps) {
           >
             {isLoading
               ? 'Carregando...'
-              : chat.lastMessage?.text || 'Nenhuma mensagem'}
+              : chat?.lastMessage?.text || 'Nenhuma mensagem'}
           </Text>
 
-          {chat.unreadCount > 0 && !isLoading && (
+          {(chat?.unreadCount ?? 0) > 0 && !isLoading && (
             <View
               style={[
                 styles.unreadBadge,
@@ -156,11 +144,18 @@ export function ChatListScreen() {
 
   const handleChatPress = async (chat: Chat) => {
     try {
+      // Validate chat object
+      if (!chat || !chat.id) {
+        console.error('[ChatListScreen] Chat inválido:', chat);
+        Alert.alert('Erro', 'Conversa inválida');
+        return;
+      }
+
       setLoadingChatId(chat.id);
       console.log('[ChatListScreen] Abrindo chat:', chat.id);
 
-      // Get the participant user ID
-      const participantId = chat.participants[0]?.id;
+      // Get the participant user ID - safely access participants
+      const participantId = chat.participants?.[0]?.id;
 
       if (!participantId) {
         console.error('[ChatListScreen] ID do participante não encontrado:', chat);
@@ -189,8 +184,8 @@ export function ChatListScreen() {
       navigation.navigate('Chat', {
         chatId: updatedChat.id,
         chatName:
-          updatedChat.chatName || updatedChat.participants[0]?.name || 'Chat',
-        userId: updatedChat.participants[0]?.id || '',
+          updatedChat.chatName || updatedChat.participants?.[0]?.name || 'Chat',
+        userId: updatedChat.participants?.[0]?.id || '',
       });
     } catch (error) {
       console.error('[ChatListScreen] Erro ao acessar o chat:', error);
@@ -217,13 +212,19 @@ export function ChatListScreen() {
     );
   };
 
-  const renderChatItem = ({ item }: { item: Chat }) => (
-    <ChatItem
-      chat={item}
-      onPress={handleChatPress}
-      isLoading={loadingChatId === item.id}
-    />
-  );
+  const renderChatItem = ({ item }: { item: Chat }) => {
+    if (!item || !item.id) {
+      return null;
+    }
+
+    return (
+      <ChatItem
+        chat={item}
+        onPress={handleChatPress}
+        isLoading={loadingChatId === item.id}
+      />
+    );
+  };
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>

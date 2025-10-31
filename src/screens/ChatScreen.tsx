@@ -17,10 +17,13 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useChatContext } from '../contexts/ChatContext';
 import { MessageBubble } from '../components/chat/MessageBubble';
 import { MessageInput } from '../components/chat/MessageInput';
+import { TypingIndicator } from '../components/chat/TypingIndicator';
 import type { ChatMessage } from '../types';
+import { useAppContext } from '../contexts/AppContext';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { ProfilePhoto } from '../components/profilePhoto';
 import { safeGoBack } from '../utils/navigationHelpers';
+import { formatFullDate, formatDateTime, isSameDay } from '../utils/dateHelpers';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -28,16 +31,20 @@ export function ChatScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute();
   const { theme } = useTheme();
+  const { user } = useAppContext();
   const {
     currentChat,
     messages,
+    typingUsers,
     loading,
     error,
     loadMessages,
-    clearMessages,
     setCurrentChat,
+    editMessage,
+    deleteMessage,
   } = useChatContext();
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   // Get route parameters
@@ -45,9 +52,15 @@ export function ChatScreen() {
     | { chatId: string; chatName: string; userId: string }
     | undefined;
 
-  // Create chat from route parameters
+  // Create chat from route parameters and load messages
   useEffect(() => {
     if (params && (!currentChat || currentChat.id !== params.chatId)) {
+      console.log('[ChatScreen] Criando novo chat a partir de params:', {
+        chatId: params.chatId,
+        chatName: params.chatName,
+        userId: params.userId
+      });
+
       const newChat = {
         id: params.chatId,
         chatName: params.chatName,
@@ -64,22 +77,22 @@ export function ChatScreen() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+
+      console.log('[ChatScreen] Setando currentChat:', newChat.id);
       setCurrentChat(newChat);
-    } else {
+    } else if (params) {
+      console.log('[ChatScreen] Chat já está selecionado:', currentChat?.id);
     }
   }, [params, currentChat, setCurrentChat]);
 
+  // Validate current chat exists
   useEffect(() => {
     if (!currentChat) {
       // Se não tem chat atual, volta para ChatList
+      console.log('[ChatScreen] Nenhum chat selecionado, voltando para lista');
       safeGoBack(navigation, 'ChatList');
-      return;
     }
-
-    return () => {
-      clearMessages();
-    };
-  }, [currentChat, navigation, clearMessages]);
+  }, [currentChat, navigation]);
 
   useEffect(() => {
     // Auto scroll to bottom when new messages arrive
@@ -102,12 +115,55 @@ export function ChatScreen() {
     setReplyingTo(null);
   };
 
+  const handleEdit = (message: ChatMessage) => {
+    setEditingMessage(message);
+  };
+
+  const handleDelete = async (message: ChatMessage) => {
+    Alert.alert(
+      'Deletar Mensagem',
+      'Tem certeza que deseja deletar esta mensagem?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Deletar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMessage(message.id);
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível deletar a mensagem');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleMessageLongPress = (message: ChatMessage) => {
-    Alert.alert('Opções da mensagem', message.text, [
+    // Don't show menu for deleted messages
+    if (message.isDeleted) {
+      return;
+    }
+
+    const isOwnMessage = message.senderId === user?.id;
+
+    const options: any[] = [
       { text: 'Responder', onPress: () => handleReply(message) },
       { text: 'Copiar', onPress: () => {} },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+    ];
+
+    // Only show edit/delete for own messages
+    if (isOwnMessage) {
+      options.push(
+        { text: 'Editar', onPress: () => handleEdit(message) },
+        { text: 'Deletar', onPress: () => handleDelete(message), style: 'destructive' }
+      );
+    }
+
+    options.push({ text: 'Cancelar', style: 'cancel' });
+
+    Alert.alert('Opções da mensagem', message.text, options);
   };
 
   const handleChatInfo = () => {
@@ -134,8 +190,7 @@ export function ChatScreen() {
     const previousMessage = index > 0 ? messages[index - 1] : null;
     const showDateSeparator =
       !previousMessage ||
-      new Date(item.timestamp).toDateString() !==
-        new Date(previousMessage.timestamp).toDateString();
+      !isSameDay(item.timestamp, previousMessage.timestamp);
 
     return (
       <View>
@@ -144,12 +199,7 @@ export function ChatScreen() {
             <Text
               style={[styles.dateText, { color: theme.colors.textSecondary }]}
             >
-              {new Date(item.timestamp).toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {formatFullDate(item.timestamp)}
             </Text>
           </View>
         )}
@@ -263,9 +313,7 @@ export function ChatScreen() {
                 {participant?.isOnline
                   ? 'Online'
                   : participant?.lastSeen
-                  ? `Visto por último ${new Date(
-                      participant.lastSeen,
-                    ).toLocaleString('pt-BR')}`
+                  ? `Visto por último ${formatDateTime(participant.lastSeen)}`
                   : 'Offline'}
               </Text>
             </View>
@@ -322,6 +370,12 @@ export function ChatScreen() {
                 : styles.messagesContent
             }
             ListEmptyComponent={renderEmptyState}
+            ListFooterComponent={() => (
+              <TypingIndicator
+                typingUsers={typingUsers}
+                currentChatId={currentChat?.id}
+              />
+            )}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() =>
               flatListRef.current?.scrollToEnd({ animated: true })
@@ -331,7 +385,12 @@ export function ChatScreen() {
       </View>
 
       {/* Message Input */}
-      <MessageInput replyingTo={replyingTo} onCancelReply={handleCancelReply} />
+      <MessageInput
+        replyingTo={replyingTo}
+        editingMessage={editingMessage}
+        onCancelReply={handleCancelReply}
+        onCancelEdit={() => setEditingMessage(null)}
+      />
     </SafeAreaView>
   );
 }

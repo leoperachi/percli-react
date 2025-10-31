@@ -147,6 +147,24 @@ export interface ChatMessage {
   fileName?: string;
   fileSize?: number;
   replyTo?: string; // Message ID this is replying to
+  isEdited?: boolean; // Message was edited
+  isDeleted?: boolean; // Message was deleted
+  readBy?: ReadStatus[]; // Who has read this message
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ReadStatus {
+  id: string;
+  messageId: string;
+  userId: string;
+  readAt: string;
+}
+
+export interface TypingUser {
+  userId: string;
+  userName: string;
+  chatId: string;
 }
 
 export interface Chat {
@@ -166,6 +184,7 @@ export interface ChatContextType {
   chats: Chat[];
   currentChat: Chat | null;
   messages: ChatMessage[];
+  typingUsers: TypingUser[];
   loading: boolean;
   error: string | null;
   loadChats: () => Promise<void>;
@@ -175,10 +194,14 @@ export interface ChatContextType {
     receiverId: string,
     replyTo?: string,
   ) => Promise<void>;
+  editMessage: (messageId: string, newText: string) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
   markAsRead: (chatId: string) => Promise<void>;
   createChat: (participantId: string) => Promise<Chat | null>;
   setCurrentChat: (chat: Chat | null) => void;
   clearMessages: () => void;
+  startTyping: () => void;
+  stopTyping: () => void;
 }
 
 // Auth Response interface

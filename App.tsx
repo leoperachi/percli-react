@@ -14,7 +14,6 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { LoadingOverlay } from './src/components/LoadingOverlay';
 import { MessageToast } from './src/components/MessageToast';
 import { logger } from './src/services/loggerService';
-import { generateTestLogs } from './src/services/loggerTest';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -24,10 +23,7 @@ function App() {
     logger
       .initialize()
       .then(() => {
-        // Gera logs de teste apenas em desenvolvimento
-        if (__DEV__) {
-          generateTestLogs();
-        }
+        console.log('[App] Logger inicializado com sucesso');
       })
       .catch(error => {
         console.error('Failed to initialize logger:', error);

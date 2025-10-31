@@ -7,13 +7,17 @@ import {
   ScrollView,
   Switch,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 import { socketService } from '../services/socketService';
 import { ProfilePhoto } from './profilePhoto';
 import apiService from '../services/apiService';
+import { useChatContext } from '../contexts/ChatContext';
 
 interface RecentConversation {
   userId: string;
@@ -28,11 +32,15 @@ interface RightDrawerProps {
   onClose: () => void;
 }
 
+type NavigationProp = StackNavigationProp<RootStackParamList>;
+
 export function RightDrawer({ onClose }: RightDrawerProps) {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
+  const { createChat, setCurrentChat } = useChatContext();
   const [conversations, setConversations] = useState<RecentConversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingChatId, setLoadingChatId] = useState<string | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -85,16 +93,43 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
     }
   }, []);
 
-  const handleConversationPress = (conversation: RecentConversation) => {
-    onClose();
-
+  const handleConversationPress = async (conversation: RecentConversation) => {
     try {
-      (navigation as any).navigate('Chat', {
-        chatId: `user_${conversation.userId}`,
-        chatName: conversation.name,
+      setLoadingChatId(conversation.userId);
+      console.log('[RightDrawer] Abrindo conversa com:', conversation.userId, conversation.name);
+
+      // First, get or create the chat using the API
+      const chat = await createChat(conversation.userId);
+
+      if (!chat) {
+        console.error('[RightDrawer] Não foi possível criar/buscar chat');
+        Alert.alert('Erro', 'Não foi possível acessar o chat');
+        setLoadingChatId(null);
+        return;
+      }
+
+      console.log('[RightDrawer] Chat obtido:', chat.id);
+
+      // Set as current chat
+      setCurrentChat(chat);
+
+      // Close drawer
+      onClose();
+
+      // Navigate to Chat screen
+      navigation.navigate('Chat', {
+        chatId: chat.id,
+        chatName: chat.chatName || conversation.name,
         userId: conversation.userId,
       });
-    } catch (error) {}
+
+      console.log('[RightDrawer] Navegação iniciada para ChatScreen');
+    } catch (error) {
+      console.error('[RightDrawer] Erro ao abrir conversa:', error);
+      Alert.alert('Erro', 'Não foi possível abrir a conversa');
+    } finally {
+      setLoadingChatId(null);
+    }
   };
 
   const formatTime = (date?: Date) => {
@@ -180,6 +215,8 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                 nestedScrollEnabled={true}
               >
                 {conversations.map(conversation => {
+                  const isLoading = loadingChatId === conversation.userId;
+
                   return (
                     <View
                       key={conversation.userId}
@@ -194,7 +231,7 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                           userName={conversation.name}
                           size={40}
                         />
-                        {conversation.unreadCount > 0 && (
+                        {conversation.unreadCount > 0 && !isLoading && (
                           <View
                             style={[
                               styles.unreadBadge,
@@ -215,16 +252,22 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                       <TouchableOpacity
                         style={styles.conversationContent}
                         onPress={() => handleConversationPress(conversation)}
+                        disabled={isLoading}
                       >
-                        <Text
-                          style={[
-                            styles.conversationName,
-                            { color: theme.colors.text },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {conversation.name}
-                        </Text>
+                        <View style={styles.conversationHeader}>
+                          <Text
+                            style={[
+                              styles.conversationName,
+                              { color: theme.colors.text },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {conversation.name}
+                          </Text>
+                          {isLoading && (
+                            <ActivityIndicator size="small" color={theme.colors.primary} />
+                          )}
+                        </View>
                         <Text
                           style={[
                             styles.conversationEmail,
@@ -232,9 +275,9 @@ export function RightDrawer({ onClose }: RightDrawerProps) {
                           ]}
                           numberOfLines={1}
                         >
-                          {conversation.email}
+                          {isLoading ? 'Abrindo chat...' : conversation.email}
                         </Text>
-                        {conversation.lastMessageAt && (
+                        {conversation.lastMessageAt && !isLoading && (
                           <Text
                             style={[
                               styles.conversationTime,
@@ -551,10 +594,16 @@ const styles = StyleSheet.create({
   conversationContent: {
     flex: 1,
   },
+  conversationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
   conversationName: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 2,
+    flex: 1,
   },
   conversationEmail: {
     fontSize: 12,

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -15,34 +15,100 @@ import { useChatContext } from '../../contexts/ChatContext';
 
 interface MessageInputProps {
   replyingTo?: ChatMessage | null;
+  editingMessage?: ChatMessage | null;
   onCancelReply?: () => void;
+  onCancelEdit?: () => void;
 }
 
-export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
+export function MessageInput({
+  replyingTo,
+  editingMessage,
+  onCancelReply,
+  onCancelEdit,
+}: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const textInputRef = useRef<TextInput>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { theme } = useTheme();
-  const { sendMessage, currentChat } = useChatContext();
+  const { sendMessage, editMessage, currentChat, startTyping, stopTyping } =
+    useChatContext();
+
+  // Load editing message text
+  useEffect(() => {
+    if (editingMessage) {
+      setMessage(editingMessage.text);
+      textInputRef.current?.focus();
+    }
+  }, [editingMessage]);
+
+  // Handle typing indicator
+  const handleTyping = useCallback((text: string) => {
+    setMessage(text);
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Start typing indicator
+    if (text.length > 0) {
+      startTyping();
+
+      // Auto-stop after 3 seconds of inactivity
+      typingTimeoutRef.current = setTimeout(() => {
+        stopTyping();
+      }, 3000);
+    } else {
+      stopTyping();
+    }
+  }, [startTyping, stopTyping]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      stopTyping();
+    };
+  }, [stopTyping]);
 
   const handleSend = async () => {
     if (!message.trim() || !currentChat || isSending) return;
 
-    const receiverId = currentChat.participants[0]?.id;
-    if (!receiverId) {
-      Alert.alert('Erro', 'Não foi possível identificar o destinatário');
-      return;
+    // Stop typing indicator
+    stopTyping();
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
 
     try {
       setIsSending(true);
-      await sendMessage(message.trim(), receiverId, replyingTo?.id);
-      setMessage('');
-      if (onCancelReply) {
-        onCancelReply();
+
+      if (editingMessage) {
+        // Edit existing message
+        await editMessage(editingMessage.id, message.trim());
+        setMessage('');
+        if (onCancelEdit) {
+          onCancelEdit();
+        }
+      } else {
+        // Send new message
+        const receiverId = currentChat.participants[0]?.id;
+        if (!receiverId) {
+          Alert.alert('Erro', 'Não foi possível identificar o destinatário');
+          return;
+        }
+
+        await sendMessage(message.trim(), receiverId, replyingTo?.id);
+        setMessage('');
+        if (onCancelReply) {
+          onCancelReply();
+        }
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível enviar a mensagem');
+      Alert.alert('Erro', editingMessage ? 'Não foi possível editar a mensagem' : 'Não foi possível enviar a mensagem');
     } finally {
       setIsSending(false);
     }
@@ -73,13 +139,15 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
           },
         ]}
       >
-        {replyingTo && (
+        {(replyingTo || editingMessage) && (
           <View
             style={[
               styles.replyContainer,
               {
                 backgroundColor: theme.colors.surface,
-                borderLeftColor: theme.colors.primary || '#007AFF',
+                borderLeftColor: editingMessage
+                  ? '#FFA500'
+                  : theme.colors.primary || '#007AFF',
               },
             ]}
           >
@@ -87,10 +155,14 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
               <Text
                 style={[
                   styles.replyTitle,
-                  { color: theme.colors.primary || '#007AFF' },
+                  {
+                    color: editingMessage
+                      ? '#FFA500'
+                      : theme.colors.primary || '#007AFF',
+                  },
                 ]}
               >
-                Respondendo
+                {editingMessage ? 'Editando mensagem' : 'Respondendo'}
               </Text>
               <Text
                 style={[
@@ -99,12 +171,12 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
                 ]}
                 numberOfLines={2}
               >
-                {replyingTo.text}
+                {editingMessage?.text || replyingTo?.text}
               </Text>
             </View>
             <TouchableOpacity
               style={styles.cancelReplyButton}
-              onPress={onCancelReply}
+              onPress={editingMessage ? onCancelEdit : onCancelReply}
             >
               <Text
                 style={[
@@ -146,7 +218,7 @@ export function MessageInput({ replyingTo, onCancelReply }: MessageInputProps) {
               ref={textInputRef}
               style={[styles.textInput, { color: theme.colors.text }]}
               value={message}
-              onChangeText={setMessage}
+              onChangeText={handleTyping}
               placeholder="Digite sua mensagem..."
               placeholderTextColor={theme.colors.textSecondary}
               multiline

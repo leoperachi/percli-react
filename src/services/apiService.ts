@@ -105,6 +105,7 @@ class ApiService {
 
       // Handle server response format - convert to ApiResponse format
       const serverData = response.data;
+      console.log('[ApiService] Resposta bruta do servidor para', endpoint, ':', JSON.stringify(serverData, null, 2));
 
       // Check if server returned success (status 200-299)
       const isSuccess = response.status >= 200 && response.status < 300;
@@ -467,12 +468,15 @@ class ApiService {
     page: number = 1,
     limit: number = 20,
   ): Promise<ApiResponse> {
-    return this.request(
+    console.log('[ApiService] Buscando conversas, page:', page, 'limit:', limit);
+    const result = await this.request(
       `${API_CONFIG.ENDPOINTS.CHATS.LIST}?page=${page}&limit=${limit}`,
       {
         method: 'GET',
       },
     );
+    console.log('[ApiService] Resultado getUserChats:', JSON.stringify(result, null, 2));
+    return result;
   }
 
   async getChatById(chatId: string): Promise<ApiResponse> {
@@ -513,7 +517,8 @@ class ApiService {
     page: number = 1,
     limit: number = 50,
   ): Promise<ApiResponse> {
-    return this.request(
+    console.log(`[ApiService] Buscando mensagens do chat ${chatId}, page=${page}, limit=${limit}`);
+    const result = await this.request(
       `${API_CONFIG.ENDPOINTS.CHATS.MESSAGES.replace(
         ':chatId',
         chatId,
@@ -522,6 +527,14 @@ class ApiService {
         method: 'GET',
       },
     );
+    console.log('[ApiService] Resultado getChatMessages:', {
+      success: result.success,
+      hasData: !!result.data,
+      dataKeys: result.data ? Object.keys(result.data) : [],
+      error: result.error,
+      dataPreview: result.data ? JSON.stringify(result.data).substring(0, 300) : null
+    });
+    return result;
   }
 
   async sendChatMessage(

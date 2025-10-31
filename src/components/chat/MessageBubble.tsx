@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { ChatMessage } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAppContext } from '../../contexts/AppContext';
+import { formatTime } from '../../utils/dateHelpers';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -17,6 +18,11 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const { theme } = useTheme();
   const { user } = useAppContext();
+
+  // Debug: Log message to see what we're receiving
+  if (!message.text) {
+    console.warn('[MessageBubble] Mensagem sem texto:', JSON.stringify(message));
+  }
 
   const isOwnMessage = message.senderId === user?.id;
 
@@ -38,13 +44,6 @@ export function MessageBubble({
   };
 
   const messageColors = getMessageColors();
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const handlePress = () => {
     if (onReply) {
@@ -125,12 +124,29 @@ export function MessageBubble({
             {
               color: messageColors.textColor,
             },
+            message.isDeleted && styles.deletedText,
           ]}
         >
-          {message.text}
+          {message.text || '[Mensagem sem conteúdo]'}
         </Text>
 
         <View style={styles.messageInfo}>
+          {message.isEdited && !message.isDeleted && (
+            <Text
+              style={[
+                styles.editedText,
+                {
+                  color: isOwnMessage
+                    ? 'rgba(255,255,255,0.5)'
+                    : theme.isDark
+                    ? 'rgba(255,255,255,0.4)'
+                    : 'rgba(0,0,0,0.4)',
+                },
+              ]}
+            >
+              editada
+            </Text>
+          )}
           <Text
             style={[
               styles.timeText,
@@ -221,11 +237,20 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 4,
   },
+  deletedText: {
+    fontStyle: 'italic',
+    opacity: 0.6,
+  },
   messageInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: 2,
+  },
+  editedText: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    marginRight: 4,
   },
   timeText: {
     fontSize: 11,
